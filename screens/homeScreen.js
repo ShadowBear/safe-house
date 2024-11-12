@@ -8,6 +8,7 @@ import { Button } from "react-native-paper";
 import { DATA } from "../sample/data";
 import NewPwCard from "../components/new-pw-card";
 import { ActivityIndicator } from "react-native";
+import { FIREBASE_URL } from "@env";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
