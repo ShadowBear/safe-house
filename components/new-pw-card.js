@@ -6,14 +6,19 @@ import { TextInput } from "react-native-paper";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
 import { addNewPwData } from "../utils/databaseHelper";
+import { PwData, User, Credential } from "../sample/pwData";
 
 export default function NewPwCard() {
   const [categoryName, setCategoryName] = useState("");
   const navigation = useNavigation();
 
   function addNewCategoryHandler() {
+    const sample = new PwData("account-tie", "Firebase", [
+      new Credential("account1@web.de", "Password1"),
+      new Credential("account2@web.de", "Password2"),
+    ]);
+    addNewPwData(sample);
     navigation.navigate("PwDetails", { accounts: [], category: categoryName });
-    addNewPwData(categoryName);
   }
 
   return (

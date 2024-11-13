@@ -6,9 +6,29 @@ import {
 } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/firestore";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  setDoc,
+  addDoc,
+  doc,
+  getDocs,
+  getDoc,
+} from "firebase/firestore";
 
 const db = getFirestore(app);
+const createPwDataObject = (pwData) => {
+  const credentials = pwData.pwData
+    .filter((instance) => instance)
+    .map((instance) => Object.assign({}, instance));
+
+  return {
+    avatar: pwData.avatar,
+    title: pwData.title,
+    pwData: credentials,
+    id: pwData.id,
+  };
+};
 
 export async function login(userName, password) {
   const auth = getAuth(app);
@@ -18,9 +38,6 @@ export async function login(userName, password) {
       userName,
       password
     );
-    const user = userCredentials.user;
-    console.log("Logged in with user: ");
-    console.log(user);
     return true;
   } catch (error) {
     console.log("Error: " + error.message);
@@ -40,33 +57,70 @@ export async function register(userName, password) {
 }
 
 export async function addNewPwData(pwData) {
+  const auth = getAuth(app);
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
   try {
-    const docRef = await addDoc(collection(db, "users"), {
-      userName: "Ben", //pwData.userName,
-      password: "Password", //pwData.password,
-      accounts: "dingens", //pwData.accounts,
-      categories: "Moinsen", //pwData.categories,
-    });
-    console.log("Document written with ID: ", docRef.id);
+    const pwDataObject = createPwDataObject(pwData);
+    // const pwDataObject = {
+    //   avatar: pwData.avatar,
+    //   title: pwData.title,
+    //   pwData: credentials,
+    //   id: pwData.id,
+    // };
+    //console.log(pwDataObject);
+
+    const pwDataCollectionRef = collection(
+      db,
+      "users",
+      user.uid,
+      "pwDataCollection"
+    );
+
+    const pwDataDocRef = doc(pwDataCollectionRef, pwDataObject.id);
+    await setDoc(pwDataDocRef, pwDataObject);
+    // await addDoc(pwDataCollectionRef, pwDataObject);
+
+    console.log("Document written with ID: ", pwDataDocRef.id);
   } catch (error) {
     console.error("Error adding new doc: ", error);
   }
-
-  // Simulate adding new password data request
-  // return new Promise((resolve, reject) => {
-  //   setTimeout(() => {
-  //     resolve(true);
-  //   }, 1000);
-  // });
 }
 
 export async function getPwData(id) {
-  // Simulate getting password data request
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 1000);
-  });
+  const auth = getAuth(app);
+  const userId = auth?.currentUser?.uid;
+  if (!userId) throw new Error("User not authenticated");
+
+  //Getting all data docs
+  try {
+    const pwDataCollectionRef = collection(
+      db,
+      "users",
+      userId,
+      "pwDataCollection"
+    );
+    const querySnapshot = await getDocs(pwDataCollectionRef);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, "=>", doc.data());
+    });
+  } catch (error) {
+    console.error("All documents returned error: ", error);
+  }
+
+  //Getting single doc
+  try {
+    const pwDataDocRef = doc(db, "users", userId, "pwDataCollection", id);
+    const docSnapshot = await getDoc(pwDataDocRef);
+    if (docSnapshot.exists())
+      console.log("Single Doc Data: ", docSnapshot.data());
+    else console.log("No such document!");
+  } catch (error) {
+    console.error("Single document returned error: ", error);
+  }
 }
 
 export async function deletePwData(id) {

@@ -7,6 +7,7 @@ import { useState } from "react";
 // import { ActivityIndicator } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
 import { KeyboardAvoidingView } from "react-native";
+import { getPwData } from "../utils/databaseHelper";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
@@ -35,6 +36,7 @@ export default function PwDetailsScreen({ navigation, route }) {
       },
     ];
     setAccountList((prevAccounts) => [...prevAccounts, ...account]);
+    getPwData("dd472349-17bd-4a4e-a087-23870fb247ff");
   }
 
   return (
