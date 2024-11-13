@@ -8,6 +8,7 @@ import * as React from "react";
 import CustomHeader from "./components/header";
 import { PaperProvider } from "react-native-paper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AuthProvider } from "./context/AuthContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -15,16 +16,18 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{ headerTitle: () => <CustomHeader /> }}
-          >
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="PwDetails" component={PwDetailsScreen} />
-            <Stack.Screen name="UserDetails" component={UserDetailsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        <AuthProvider>
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{ headerTitle: () => <CustomHeader /> }}
+            >
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Home" component={HomeScreen} />
+              <Stack.Screen name="PwDetails" component={PwDetailsScreen} />
+              <Stack.Screen name="UserDetails" component={UserDetailsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </AuthProvider>
       </PaperProvider>
     </GestureHandlerRootView>
   );

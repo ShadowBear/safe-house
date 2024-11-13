@@ -1,34 +1,40 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useCallback, useContext } from "react";
 import { useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardMini from "../components/pw-card-mini";
 import { FlatList } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
-import { DATA } from "../sample/data";
+import { DATA, NewData } from "../sample/data";
 import NewPwCard from "../components/new-pw-card";
 import { ActivityIndicator } from "react-native";
 import { FIREBASE_URL } from "@env";
+import { AuthContext } from "../context/AuthContext";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
+  const authCtx = useContext(AuthContext);
 
   useEffect(() => {
     setIsLoading(false);
-  }, [DATA]);
+  }, [NewData]);
+
+  useEffect(() => {
+    console.log(authCtx.user);
+  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.listContainer}>
         <FlatList
-          data={DATA}
+          data={NewData}
           contentContainerStyle={{ gap: 6 }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PwCardMini
               avatar={item.avatar}
-              title={item.category}
-              data={item.account}
+              title={item.title}
+              data={item.pwData}
             />
           )}
           style={styles.list}

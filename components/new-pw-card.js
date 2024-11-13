@@ -5,6 +5,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { TextInput } from "react-native-paper";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
+import { addNewPwData } from "../utils/databaseHelper";
 
 export default function NewPwCard() {
   const [categoryName, setCategoryName] = useState("");
@@ -12,6 +13,7 @@ export default function NewPwCard() {
 
   function addNewCategoryHandler() {
     navigation.navigate("PwDetails", { accounts: [], category: categoryName });
+    addNewPwData(categoryName);
   }
 
   return (

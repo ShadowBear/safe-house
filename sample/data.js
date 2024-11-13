@@ -5,6 +5,64 @@
 //   Bluetooth: "Bluetooth",
 // };
 
+// export class PwData {
+//   constructor(avatar, title, pwData) {
+//     this.avatar = avatar;
+//     this.title = title;
+//     this.pwData = pwData;
+//   }
+// }
+
+// export class PwDetails {
+//   constructor(userName, password) {
+//     this.userName = userName;
+//     this.password = password;
+//   }
+// }
+
+import { PwData, PwDetails, Credential } from "./pwData";
+
+export const NewData = [
+  new PwData("account-tie", "PayPal", [
+    new Credential("test@mail.com", "Test123!"),
+    new Credential("test2@mail.com", "Tester123!"),
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "Mail", [
+    new Credential("test@mail.com", "Test123!"),
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "Bank", [
+    new Credential("test@mail.com", "Test123!"),
+  ]),
+  new PwData("account-tie", "Amazon", [
+    new Credential("test@mail.com", "Test123!"),
+    new Credential("test2@mail.com", "Tester123!"),
+  ]),
+  new PwData("account-tie", "Udemy", [
+    new Credential("test@mail.com", "Test123!"),
+    new Credential("test2@mail.com", "Tester123!"),
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "Twitter", [
+    new Credential("test2@mail.com", "Tester123!"),
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "Facebook", [
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "Youtube", [
+    new Credential("test2@mail.com", "Tester123!"),
+  ]),
+  new PwData("account-tie", "Teams", [
+    new Credential("test@mail.com", "Test123!"),
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+  new PwData("account-tie", "ChatBot", [
+    new Credential("test3@mail.com", "Testing123!"),
+  ]),
+];
+
 export const DATA = [
   {
     id: 0,

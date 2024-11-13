@@ -1,5 +1,14 @@
 import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, {
+  isValidElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Colors } from "../utils/Colors";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { showPasswordHandler } from "../utils/pwHelper";
@@ -8,8 +17,11 @@ import {
   SegmentedButtons,
   TextInput,
   Button,
+  HelperText,
 } from "react-native-paper";
-import { Link } from "@react-navigation/native";
+import { Link, useFocusEffect } from "@react-navigation/native";
+import { login, register } from "../utils/databaseHelper";
+import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -21,68 +33,144 @@ export default function LoginScreen({ navigation }) {
   const [pw, setPw] = useState("");
   const [rePw, setRePw] = useState("");
   const [userName, setUserName] = useState("");
+  const [validLogin, setValidLogin] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [matching, setMatching] = useState(true);
 
   const inputRef = useRef(null);
   const reInputRef = useRef(null);
 
-  function LoginHandler() {
-    navigation.navigate("Home", { userName: "Ben", password: "Hallo123!" });
-  }
+  const { setUser } = useContext(AuthContext);
 
-  function clearPwFields() {
+  useFocusEffect(
+    useCallback(() => {
+      clearFields();
+    }, [])
+  );
+
+  const LoginHandler = useCallback(async () => {
+    //Debug Logic:
+
+    let userPW = pw;
+    let user = userName;
+
+    if (pw.length === 0 && userName.length === 0) {
+      user = "ben1@mail.com";
+      userPW = "Test123!";
+    } else {
+      let valid = checkValidate();
+      if (!valid) {
+        console.log("Login or Register was not valid");
+        return;
+      }
+    }
+
+    let success = false;
+
+    if (segmentValue === "Login") {
+      success = await login(user, userPW);
+    } else if (segmentValue === "Register" && pw === rePw) {
+      success = await register(userName, pw);
+    }
+    if (success) {
+      setUser({ userName: user, password: userPW });
+      navigation.navigate("Home", { userName: user });
+    } else {
+      setErrorMessage("Failed to login check User Name and Password");
+      setValidLogin(false);
+    }
+  }, [segmentValue, userName, pw, rePw, navigation]);
+
+  const clearFields = () => {
     setPw("");
     setRePw("");
-  }
+    setErrorMessage("");
+    setValidLogin(true);
+    setPasswordIsVisible(true);
+    setRePasswordIsVisible(true);
+    setEyeIcon("eye");
+    setEyeIconRe("eye");
+    console.log("Clear all fields");
+  };
 
-  function loginOrRegisterInputs() {
-    if (segmentValue === "Login") {
-      return (
-        <>
-          <View style={styles.checkboxLabel}>
-            <Checkbox
-              status={checked ? "checked" : "unchecked"}
-              onPress={() => {
-                setChecked(!checked);
-              }}
-              color={Colors.info}
-            />
-            <Text>Remember Me</Text>
-          </View>
-          <View style={styles.link}>
-            <Link to={{ screen: "Home" }}>Password Forgotten..</Link>
-          </View>
-        </>
-      );
-    }
-    return (
+  useEffect(() => {
+    setMatching(pw === rePw);
+  }, [pw, rePw]);
+
+  const checkValidate = () => {
+    let valid = userName.length > 5 && pw.length > 5 && userName.includes("@");
+    console.log(valid);
+    setValidLogin(valid);
+    if (!valid) setErrorMessage("Password or Email is not valid!");
+    return valid;
+  };
+
+  // const handleCheckboxPress = useCallback(() => {
+  //   setChecked(!checked);
+  // }, [checked]);
+
+  // const handleSegmentChange = useCallback(() => {
+  //   setSegmentValue(value);
+  //   clearFields();
+  // }, []);
+
+  const loginOrRegisterInputs = useMemo(() => {
+    return segmentValue === "Login" ? (
       <>
-        <TextInput
-          ref={reInputRef}
-          style={styles.inputFields}
-          label="Re-Enter Password"
-          placeholder="Password"
-          mode="outlined"
-          secureTextEntry={rePwIsVisible}
-          value={rePw}
-          onChangeText={setRePw}
-          right={
-            <TextInput.Icon
-              icon={eyeIconRe}
-              onPress={() =>
-                showPasswordHandler({
-                  pwIsVisible: rePwIsVisible,
-                  setPassword: setRePasswordIsVisible,
-                  setIcon: setEyeIconRe,
-                  ref: reInputRef,
-                })
-              }
-            />
-          }
-          activeOutlineColor={Colors.info}
-        />
+        <View style={styles.checkboxLabel}>
+          <Checkbox
+            status={checked ? "checked" : "unchecked"}
+            onPress={() => setChecked((prev) => !prev)}
+            color={Colors.info}
+          />
+          <Text>Remember Me</Text>
+        </View>
+        <View style={styles.link}>
+          <Link to={{ screen: "Home" }}>Password Forgotten..</Link>
+        </View>
+      </>
+    ) : (
+      <>
+        <View style={{ flex: 1, width: "100%", marginTop: 15 }}>
+          <TextInput
+            ref={reInputRef}
+            style={styles.inputFields}
+            label="Re-Enter Password"
+            placeholder="Password"
+            mode="outlined"
+            secureTextEntry={rePwIsVisible}
+            value={rePw}
+            onChangeText={setRePw}
+            right={
+              <TextInput.Icon
+                icon={eyeIconRe}
+                onPress={() =>
+                  showPasswordHandler({
+                    pwIsVisible: rePwIsVisible,
+                    setPassword: setRePasswordIsVisible,
+                    setIcon: setEyeIconRe,
+                    ref: reInputRef,
+                  })
+                }
+              />
+            }
+            activeOutlineColor={Colors.info}
+          />
+          <HelperText type="error" visible={!matching}>
+            Passwords don´t match
+          </HelperText>
+        </View>
       </>
     );
-  }
+  }, [
+    segmentValue,
+    rePw,
+    checked,
+    eyeIconRe,
+    rePwIsVisible,
+    reInputRef,
+    matching,
+  ]);
 
   return (
     <KeyboardAvoidingView style={styles.container}>
@@ -100,7 +188,7 @@ export default function LoginScreen({ navigation }) {
               value: "Login",
               onPress: () => {
                 console.log("Login pressed");
-                clearPwFields();
+                clearFields();
               },
               checkedColor: Colors.white,
               uncheckedColor: Colors.info,
@@ -114,7 +202,7 @@ export default function LoginScreen({ navigation }) {
               value: "Register",
               onPress: () => {
                 console.log("Register Pressed");
-                clearPwFields();
+                clearFields();
               },
               checkedColor: Colors.info,
               style: [
@@ -169,8 +257,11 @@ export default function LoginScreen({ navigation }) {
             }
             activeOutlineColor={Colors.info}
           />
+          <HelperText type="error" visible={!validLogin}>
+            {errorMessage}
+          </HelperText>
         </View>
-        <View style={styles.checkboxContainer}>{loginOrRegisterInputs()}</View>
+        <View style={styles.checkboxContainer}>{loginOrRegisterInputs}</View>
         <View style={styles.btnContainer}>
           <Button
             icon={segmentValue === "Login" ? "login-variant" : "file-sign"}
