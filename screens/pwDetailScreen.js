@@ -4,10 +4,10 @@ import { Colors } from "../utils/Colors";
 import PwCardDetails from "../components/pw-card-detail";
 import { FlatList } from "react-native-gesture-handler";
 import { useState } from "react";
-// import { ActivityIndicator } from "react-native-paper";
 import { ActivityIndicator } from "react-native";
 import { KeyboardAvoidingView } from "react-native";
-import { getPwData } from "../utils/databaseHelper";
+import { deletePwData, getPwData, updatePwData } from "../utils/databaseHelper";
+import { PwData, Credential } from "../sample/pwData";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
@@ -27,7 +27,7 @@ export default function PwDetailsScreen({ navigation, route }) {
     setIsLoading(false);
   }, [accountList]);
 
-  function addNewAccountHandler({ newAccount }) {
+  async function addNewAccountHandler({ newAccount }) {
     let account = [
       {
         id: accountList.length,
@@ -36,7 +36,22 @@ export default function PwDetailsScreen({ navigation, route }) {
       },
     ];
     setAccountList((prevAccounts) => [...prevAccounts, ...account]);
-    getPwData("dd472349-17bd-4a4e-a087-23870fb247ff");
+    try {
+      console.log("Get Data: ");
+      await getPwData("dd472349-17bd-4a4e-a087-23870fb247ff");
+      console.log("Update Data: ");
+      await updatePwData(
+        "3f3d6ffb-bfe4-41bc-9bd6-1bec90f6f5ed",
+        new PwData("eye", "Updated Pay", [
+          new Credential("My Account", "passi2"),
+        ])
+      );
+      console.log("Delete Data: ");
+      await deletePwData("a3d0e24e-a91d-47d0-a79a-297a29aadf69");
+      console.log("All operations completed");
+    } catch (error) {
+      console.error("Error occurred: ", error);
+    }
   }
 
   return (

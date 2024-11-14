@@ -1,25 +1,3 @@
-// const Kategories = {
-//   Mail: "Mail",
-//   PayPal: "PayPal",
-//   Wifi: "Wifi",
-//   Bluetooth: "Bluetooth",
-// };
-
-// export class PwData {
-//   constructor(avatar, title, pwData) {
-//     this.avatar = avatar;
-//     this.title = title;
-//     this.pwData = pwData;
-//   }
-// }
-
-// export class PwDetails {
-//   constructor(userName, password) {
-//     this.userName = userName;
-//     this.password = password;
-//   }
-// }
-
 import { PwData, PwDetails, Credential } from "./pwData";
 
 export const NewData = [

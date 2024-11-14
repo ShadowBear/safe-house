@@ -14,7 +14,11 @@ import {
   doc,
   getDocs,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
+
+const FIRESTORE_USERS = "users";
+const FIRESTORE_PW_COLLECTION = "pwDataCollection";
 
 const db = getFirestore(app);
 const createPwDataObject = (pwData) => {
@@ -28,6 +32,14 @@ const createPwDataObject = (pwData) => {
     pwData: credentials,
     id: pwData.id,
   };
+};
+
+const getPwDataCollectionRef = (userId) => {
+  return collection(db, FIRESTORE_USERS, userId, FIRESTORE_PW_COLLECTION);
+};
+
+const getPwDataDocRefWithId = (userId, pwDataId) => {
+  return doc(db, FIRESTORE_USERS, userId, FIRESTORE_PW_COLLECTION, pwDataId);
 };
 
 export async function login(userName, password) {
@@ -65,21 +77,7 @@ export async function addNewPwData(pwData) {
 
   try {
     const pwDataObject = createPwDataObject(pwData);
-    // const pwDataObject = {
-    //   avatar: pwData.avatar,
-    //   title: pwData.title,
-    //   pwData: credentials,
-    //   id: pwData.id,
-    // };
-    //console.log(pwDataObject);
-
-    const pwDataCollectionRef = collection(
-      db,
-      "users",
-      user.uid,
-      "pwDataCollection"
-    );
-
+    const pwDataCollectionRef = getPwDataCollectionRef(user.uid);
     const pwDataDocRef = doc(pwDataCollectionRef, pwDataObject.id);
     await setDoc(pwDataDocRef, pwDataObject);
     // await addDoc(pwDataCollectionRef, pwDataObject);
@@ -97,12 +95,7 @@ export async function getPwData(id) {
 
   //Getting all data docs
   try {
-    const pwDataCollectionRef = collection(
-      db,
-      "users",
-      userId,
-      "pwDataCollection"
-    );
+    const pwDataCollectionRef = getPwDataCollectionRef(userId);
     const querySnapshot = await getDocs(pwDataCollectionRef);
     querySnapshot.forEach((doc) => {
       console.log(doc.id, "=>", doc.data());
@@ -113,7 +106,7 @@ export async function getPwData(id) {
 
   //Getting single doc
   try {
-    const pwDataDocRef = doc(db, "users", userId, "pwDataCollection", id);
+    const pwDataDocRef = getPwDataDocRefWithId(userId, id);
     const docSnapshot = await getDoc(pwDataDocRef);
     if (docSnapshot.exists())
       console.log("Single Doc Data: ", docSnapshot.data());
@@ -124,19 +117,32 @@ export async function getPwData(id) {
 }
 
 export async function deletePwData(id) {
-  // Simulate deleting password data request
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 1000);
-  });
+  const auth = getAuth(app);
+  const userId = auth?.currentUser?.uid;
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+  try {
+    const docDataRef = getPwDataDocRefWithId(userId, id);
+    await deleteDoc(docDataRef);
+  } catch (error) {
+    console.error("Delete doc returned error: ", error);
+  }
 }
 
 export async function updatePwData(id, pwData) {
-  // Simulate updating password data request
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve(true);
-    }, 1000);
-  });
+  const auth = getAuth(app);
+  const userId = auth?.currentUser?.uid;
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+
+  try {
+    const docDataRef = getPwDataDocRefWithId(userId, id);
+    const pwDataObject = createPwDataObject(pwData);
+    await setDoc(docDataRef, pwDataObject);
+    console.log("Pw Data updated successfully");
+  } catch (error) {
+    console.error("Error updating Pw Data: ", error);
+  }
 }
