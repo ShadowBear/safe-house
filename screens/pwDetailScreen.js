@@ -6,13 +6,18 @@ import { FlatList } from "react-native-gesture-handler";
 import { useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { KeyboardAvoidingView } from "react-native";
-import { deletePwData, getPwData, updatePwData } from "../utils/databaseHelper";
+import {
+  deletePwData,
+  getPwDataWithId,
+  updatePwData,
+} from "../utils/databaseHelper";
 import { PwData, Credential } from "../sample/pwData";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
   const [category, setCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [pwDataCollectionId, setPwDataCollectionId] = useState("");
 
   useEffect(() => {
     if (route?.params?.accounts) {
@@ -21,36 +26,84 @@ export default function PwDetailsScreen({ navigation, route }) {
     if (route?.params?.category && route?.params?.category !== "") {
       setCategoryName(route.params.category);
     }
-  }, [route?.params?.accounts, route?.params?.category]);
+
+    if (route?.params?.id) {
+      setPwDataCollectionId(route?.params?.id);
+    }
+  }, [route?.params?.accounts, route?.params?.category, route?.params?.id]);
 
   useEffect(() => {
     setIsLoading(false);
   }, [accountList]);
 
   async function addNewAccountHandler({ newAccount }) {
-    let account = [
-      {
-        id: accountList.length,
-        userName: newAccount.userName,
-        password: newAccount.password,
-      },
-    ];
-    setAccountList((prevAccounts) => [...prevAccounts, ...account]);
+    //Check for correct account entry
+    if (!newAccount?.userName || !newAccount?.password) return false;
+
+    //Create new credential element
     try {
-      console.log("Get Data: ");
-      await getPwData("dd472349-17bd-4a4e-a087-23870fb247ff");
-      console.log("Update Data: ");
-      await updatePwData(
-        "3f3d6ffb-bfe4-41bc-9bd6-1bec90f6f5ed",
-        new PwData("eye", "Updated Pay", [
-          new Credential("My Account", "passi2"),
-        ])
+      const pwDataId = pwDataCollectionId;
+      let newCredentialsElement = new Credential(
+        newAccount.userName,
+        newAccount.password
       );
-      console.log("Delete Data: ");
-      await deletePwData("a3d0e24e-a91d-47d0-a79a-297a29aadf69");
-      console.log("All operations completed");
+      const dataRef = await getPwDataWithId(pwDataId);
+      dataRef.pwData.push(newCredentialsElement);
+      const result = await updatePwData(pwDataId, dataRef);
+      if (result)
+        setAccountList((prevAccounts) => [
+          ...prevAccounts,
+          newCredentialsElement,
+        ]);
     } catch (error) {
       console.error("Error occurred: ", error);
+    }
+  }
+
+  //Todo: Adjust Update to handle nested credentials
+
+  async function updatePwDataHandler({ updatedPwData }) {
+    try {
+      const pwDataId = pwDataCollectionId;
+      //Get original object
+      const dataRef = await getPwDataWithId(pwDataId);
+
+      //Create new credential
+      dataRef.pwData.forEach((element) => {
+        if (element.id === updatedPwData.id) {
+          element.userName = updatedPwData.userName;
+          element.password = updatedPwData.password;
+        }
+      });
+
+      const result = await updatePwData(pwDataId, dataRef);
+      if (result) {
+        setAccountList(
+          accountList.map((item) =>
+            item.id === updatedPwData.id
+              ? { ...item, pwData: updatedPwData.pwData }
+              : item
+          )
+        );
+      }
+      //Todo: add user Feedback
+    } catch (error) {
+      console.error("Error while updating data: ", error);
+    }
+  }
+
+  //Todo: Adjust Delete to handle nested credentials
+  async function deletePwDataHandler({ id }) {
+    try {
+      const filteredList = accountList.filter((item) => item.id !== id);
+      const pwDataId = pwDataCollectionId;
+      const dataRef = await getPwDataWithId(pwDataId);
+
+      dataRef.pwData = filteredList;
+      const result = await updatePwData(pwDataId, dataRef);
+      if (result) setAccountList(filteredList);
+    } catch (error) {
+      console.error("Error while deleting data: ", error);
     }
   }
 
@@ -68,6 +121,9 @@ export default function PwDetailsScreen({ navigation, route }) {
               user={item.userName}
               password={item.password}
               isNewCardMode={false}
+              onPressSave={updatePwDataHandler}
+              onPressDelete={deletePwDataHandler}
+              id={item.id}
             />
           )}
           style={styles.list}
@@ -87,7 +143,7 @@ export default function PwDetailsScreen({ navigation, route }) {
           user=""
           password=""
           isNewCardMode={true}
-          onPress={addNewAccountHandler}
+          onPressNew={addNewAccountHandler}
         />
       </View>
     </View>

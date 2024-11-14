@@ -28,16 +28,28 @@ export class User {
 }
 
 export class PwData {
-  constructor(avatar, title, pwData = []) {
+  constructor(avatar, title, pwData = [], id) {
     this.avatar = avatar;
     this.title = title;
     this.pwData = pwData;
-    this.id = uuidv4();
+    this.id = id ? id : uuidv4();
   }
 
   addCredentials(userName, password) {
     const credentials = new Credential(userName, password);
     this.pwData.push(credentials);
+  }
+
+  updateCredentials(credentials) {
+    this.pwData.map((item) =>
+      item.id === credentials.id
+        ? {
+            ...item,
+            userName: credentials.userName,
+            password: credentials.password,
+          }
+        : item
+    );
   }
 
   getAllCredentials() {
@@ -59,10 +71,10 @@ export class PwData {
 }
 
 export class Credential {
-  constructor(username, password) {
+  constructor(username, password, id) {
     this.userName = username;
     this.password = password;
-    this.id = uuidv4();
+    this.id = id ? id : uuidv4();
   }
 
   displayInfo() {
@@ -70,3 +82,34 @@ export class Credential {
     console.log(`Password: ${this.password}`);
   }
 }
+
+export const randomAvatar = () => {
+  const avatars = [
+    "account-tie-outline",
+    "airballoon",
+    "airplane",
+    "alien-outline",
+    "anvil",
+    "balloon",
+    "bank",
+    "bat",
+    "biohazard",
+    "bowl-mix-outline",
+    "cake",
+    "campfire",
+    "cart-outline",
+    "dice-5-outline",
+    "factory",
+    "feather",
+    "flash",
+    "anchor",
+    "ghost",
+    "guy-fawkes-mask",
+    "mustache",
+  ];
+  return avatars[Math.floor(Math.random() * avatars.length)];
+};
+
+export const avatarLetter = (letter) => {
+  return `alpha-${letter}-circle-outline`;
+};

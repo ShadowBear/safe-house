@@ -1,17 +1,20 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
 import React from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Colors } from "../utils/Colors";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
+import { deletePwData } from "../utils/databaseHelper";
 
-export default function PwCardMini({ avatar, title, data }) {
-  //console.log(data);
-
+export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
   const navigation = useNavigation();
 
   function showDetailsHandler() {
-    navigation.navigate("PwDetails", { accounts: data, category: title });
+    navigation.navigate("PwDetails", {
+      id: id,
+      accounts: data,
+      category: title,
+    });
   }
 
   return (
@@ -27,19 +30,28 @@ export default function PwCardMini({ avatar, title, data }) {
           </View>
           <Text style={styles.text}>{title}</Text>
           <QuardBtn
-            name={"eye"}
-            size={30}
+            name={"delete-outline"}
+            size={28}
             onPress={() => {
-              console.log("Press 2");
+              const result = deletePwData(id);
+              if (result) deleteCard(id);
             }}
             color={Colors.info}
             style={styles.icon}
           />
           <QuardBtn
             name={"content-copy"}
-            size={30}
+            size={25}
             onPress={() => {
-              console.log("Press 3");
+              if (data.length > 0) {
+                ToastAndroid.show(
+                  `Copied password for ${data[0].userName}`,
+                  ToastAndroid.SHORT
+                );
+                //navigator.clipboard.setString(data[0].password);
+              } else {
+                ToastAndroid.show("No password available", ToastAndroid.SHORT);
+              }
             }}
             color={Colors.info}
             style={styles.icon}

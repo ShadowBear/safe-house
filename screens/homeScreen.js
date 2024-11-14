@@ -10,24 +10,35 @@ import NewPwCard from "../components/new-pw-card";
 import { ActivityIndicator } from "react-native";
 import { FIREBASE_URL } from "@env";
 import { AuthContext } from "../context/AuthContext";
+import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const authCtx = useContext(AuthContext);
+  const [accountPwData, setAccountPwData] = useState([]);
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, [NewData]);
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchDataAsync() {
+        let data = await getAllPwData();
+        setAccountPwData(data);
+        setIsLoading(false);
+      }
+      fetchDataAsync();
+    }, [])
+  );
 
-  useEffect(() => {
-    console.log(authCtx.user);
-  }, []);
+  function deleteAccountPwData(id) {
+    const updatedPwData = accountPwData.filter((item) => item.id !== id);
+    setAccountPwData(updatedPwData);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.listContainer}>
         <FlatList
-          data={NewData}
+          data={accountPwData}
           contentContainerStyle={{ gap: 6 }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
@@ -35,6 +46,8 @@ export default function HomeScreen({ navigation }) {
               avatar={item.avatar}
               title={item.title}
               data={item.pwData}
+              id={item.id}
+              deleteCard={deleteAccountPwData}
             />
           )}
           style={styles.list}

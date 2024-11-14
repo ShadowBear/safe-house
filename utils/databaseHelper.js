@@ -81,36 +81,44 @@ export async function addNewPwData(pwData) {
     const pwDataDocRef = doc(pwDataCollectionRef, pwDataObject.id);
     await setDoc(pwDataDocRef, pwDataObject);
     // await addDoc(pwDataCollectionRef, pwDataObject);
-
-    console.log("Document written with ID: ", pwDataDocRef.id);
+    return true;
   } catch (error) {
     console.error("Error adding new doc: ", error);
+    return false;
   }
 }
 
-export async function getPwData(id) {
+export async function getAllPwData() {
   const auth = getAuth(app);
   const userId = auth?.currentUser?.uid;
   if (!userId) throw new Error("User not authenticated");
 
-  //Getting all data docs
   try {
     const pwDataCollectionRef = getPwDataCollectionRef(userId);
-    const querySnapshot = await getDocs(pwDataCollectionRef);
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, "=>", doc.data());
+    const dataSnapshot = await getDocs(pwDataCollectionRef);
+    let data = [];
+    dataSnapshot.forEach((item) => {
+      data.push(item.data());
+      //console.log(item.id, "=>", item.data());
     });
+    return data;
   } catch (error) {
-    console.error("All documents returned error: ", error);
+    console.error("Error getting all docs: ", error);
   }
+}
 
-  //Getting single doc
+export async function getPwDataWithId(id) {
+  const auth = getAuth(app);
+  const userId = auth?.currentUser?.uid;
+  if (!userId) throw new Error("User not authenticated");
+
+  //Getting single doc for id
   try {
     const pwDataDocRef = getPwDataDocRefWithId(userId, id);
     const docSnapshot = await getDoc(pwDataDocRef);
-    if (docSnapshot.exists())
-      console.log("Single Doc Data: ", docSnapshot.data());
-    else console.log("No such document!");
+    if (docSnapshot.exists()) {
+      return docSnapshot.data();
+    } else console.log("No such document!");
   } catch (error) {
     console.error("Single document returned error: ", error);
   }
@@ -125,8 +133,10 @@ export async function deletePwData(id) {
   try {
     const docDataRef = getPwDataDocRefWithId(userId, id);
     await deleteDoc(docDataRef);
+    return true;
   } catch (error) {
     console.error("Delete doc returned error: ", error);
+    return false;
   }
 }
 
@@ -141,8 +151,9 @@ export async function updatePwData(id, pwData) {
     const docDataRef = getPwDataDocRefWithId(userId, id);
     const pwDataObject = createPwDataObject(pwData);
     await setDoc(docDataRef, pwDataObject);
-    console.log("Pw Data updated successfully");
+    return true;
   } catch (error) {
     console.error("Error updating Pw Data: ", error);
+    return false;
   }
 }

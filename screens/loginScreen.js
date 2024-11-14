@@ -50,7 +50,6 @@ export default function LoginScreen({ navigation }) {
 
   const LoginHandler = useCallback(async () => {
     //Debug Logic:
-
     let userPW = pw;
     let user = userName;
 
@@ -90,7 +89,6 @@ export default function LoginScreen({ navigation }) {
     setRePasswordIsVisible(true);
     setEyeIcon("eye");
     setEyeIconRe("eye");
-    console.log("Clear all fields");
   };
 
   useEffect(() => {
@@ -99,7 +97,6 @@ export default function LoginScreen({ navigation }) {
 
   const checkValidate = () => {
     let valid = userName.length > 5 && pw.length > 5 && userName.includes("@");
-    console.log(valid);
     setValidLogin(valid);
     if (!valid) setErrorMessage("Password or Email is not valid!");
     return valid;
@@ -187,7 +184,6 @@ export default function LoginScreen({ navigation }) {
               label: "Login",
               value: "Login",
               onPress: () => {
-                console.log("Login pressed");
                 clearFields();
               },
               checkedColor: Colors.white,
@@ -201,7 +197,6 @@ export default function LoginScreen({ navigation }) {
               label: "Register",
               value: "Register",
               onPress: () => {
-                console.log("Register Pressed");
                 clearFields();
               },
               checkedColor: Colors.info,
