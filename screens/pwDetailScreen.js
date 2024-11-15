@@ -1,4 +1,14 @@
-import { Button, StyleSheet, Text, View, Keyboard } from "react-native";
+import {
+  Animated,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+  Keyboard,
+  Modal,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+} from "react-native";
 import React, { useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardDetails from "../components/pw-card-detail";
@@ -12,12 +22,17 @@ import {
   updatePwData,
 } from "../utils/databaseHelper";
 import { PwData, Credential } from "../sample/pwData";
+import { LinearTransition } from "react-native-reanimated";
+import { FAB } from "react-native-paper";
+import { BlurView } from "expo-blur";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
   const [category, setCategoryName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [pwDataCollectionId, setPwDataCollectionId] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [resetInputs, setResetInputs] = useState(false);
 
   useEffect(() => {
     if (route?.params?.accounts) {
@@ -25,6 +40,10 @@ export default function PwDetailsScreen({ navigation, route }) {
     }
     if (route?.params?.category && route?.params?.category !== "") {
       setCategoryName(route.params.category);
+      navigation.setOptions({
+        headerTitle: route?.params?.category,
+        headerLargeTitle: true,
+      });
     }
 
     if (route?.params?.id) {
@@ -35,6 +54,13 @@ export default function PwDetailsScreen({ navigation, route }) {
   useEffect(() => {
     setIsLoading(false);
   }, [accountList]);
+
+  const modalClose = () => {
+    setModalVisible(false);
+    setResetInputs(true);
+    Keyboard.dismiss();
+    setResetInputs(false);
+  };
 
   async function addNewAccountHandler({ newAccount }) {
     //Check for correct account entry
@@ -50,11 +76,13 @@ export default function PwDetailsScreen({ navigation, route }) {
       const dataRef = await getPwDataWithId(pwDataId);
       dataRef.pwData.push(newCredentialsElement);
       const result = await updatePwData(pwDataId, dataRef);
-      if (result)
+      if (result) {
         setAccountList((prevAccounts) => [
           ...prevAccounts,
           newCredentialsElement,
         ]);
+        setModalVisible(false);
+      }
     } catch (error) {
       console.error("Error occurred: ", error);
     }
@@ -109,11 +137,8 @@ export default function PwDetailsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleText}>
-        <Text style={styles.title}>{category}</Text>
-      </View>
       <View style={styles.listContainer}>
-        <FlatList
+        <Animated.FlatList
           data={accountList}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
@@ -136,16 +161,43 @@ export default function PwDetailsScreen({ navigation, route }) {
               </View>
             ) : null
           }
+          itemLayoutAnimation={LinearTransition}
+        />
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          onPress={() => {
+            setModalVisible(true);
+          }}
         />
       </View>
-      <View style={styles.newCardContainer}>
-        <PwCardDetails
-          user=""
-          password=""
-          isNewCardMode={true}
-          onPressNew={addNewAccountHandler}
-        />
-      </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={modalClose}
+      >
+        <TouchableOpacity
+          style={styles.container}
+          onPress={modalClose}
+          activeOpacity={1}
+        >
+          <BlurView intensity={60} tint="light" style={styles.modal}>
+            <TouchableWithoutFeedback>
+              <PwCardDetails
+                user=""
+                password=""
+                isNewCardMode={true}
+                onPressNew={addNewAccountHandler}
+                resetInputs={resetInputs}
+              />
+            </TouchableWithoutFeedback>
+          </BlurView>
+        </TouchableOpacity>
+      </Modal>
+      {/* <View style={styles.newCardContainer}>
+        
+      </View> */}
     </View>
   );
 }
@@ -155,6 +207,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: Colors.white,
   },
 
   listContainer: {
@@ -178,8 +231,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
+  modal: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+
   list: {
     width: "100%",
+  },
+
+  fab: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    margin: 10,
   },
 
   newCardContainer: {

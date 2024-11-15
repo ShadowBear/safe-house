@@ -19,6 +19,7 @@ export default function PwCardDetails({
   onPressSave,
   onPressDelete,
   id,
+  resetInputs,
 }) {
   const [userName, setUserName] = useState(user);
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -32,6 +33,13 @@ export default function PwCardDetails({
   let actionButton = null;
   let editButton = null;
   let newPwText = null;
+
+  useEffect(() => {
+    if (resetInputs) {
+      setPW("");
+      setUserName("");
+    }
+  }, [resetInputs]);
 
   // New Card Mode:
   if (isNewCardMode) {

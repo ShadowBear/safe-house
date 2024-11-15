@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import React, { useCallback, useContext } from "react";
 import { useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
@@ -12,6 +12,7 @@ import { FIREBASE_URL } from "@env";
 import { AuthContext } from "../context/AuthContext";
 import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
 import { useFocusEffect } from "@react-navigation/native";
+import { LinearTransition } from "react-native-reanimated";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,9 +38,10 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.listContainer}>
-        <FlatList
+        <Animated.FlatList
+          keyboardDismissMode="on-drag"
           data={accountPwData}
-          contentContainerStyle={{ gap: 6 }}
+          contentContainerStyle={{ gap: 10 }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PwCardMini
@@ -59,6 +61,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             ) : null
           }
+          itemLayoutAnimation={LinearTransition}
         />
       </View>
       <View style={styles.newPwCardContainer}>

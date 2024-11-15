@@ -5,6 +5,7 @@ import { Colors } from "../utils/Colors";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
 import { deletePwData } from "../utils/databaseHelper";
+import * as Clipboard from "expo-clipboard";
 
 export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
   const navigation = useNavigation();
@@ -15,6 +16,21 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
       accounts: data,
       category: title,
     });
+  }
+
+  function clipboardHandler() {
+    async function copyClipboard() {
+      await Clipboard.setStringAsync(data[0].password);
+      ToastAndroid.show(
+        `Copied password for ${data[0].userName}`,
+        ToastAndroid.SHORT
+      );
+    }
+    if (data.length > 0) {
+      copyClipboard();
+    } else {
+      ToastAndroid.show("No password available", ToastAndroid.SHORT);
+    }
   }
 
   return (
@@ -42,17 +58,7 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
           <QuardBtn
             name={"content-copy"}
             size={25}
-            onPress={() => {
-              if (data.length > 0) {
-                ToastAndroid.show(
-                  `Copied password for ${data[0].userName}`,
-                  ToastAndroid.SHORT
-                );
-                //navigator.clipboard.setString(data[0].password);
-              } else {
-                ToastAndroid.show("No password available", ToastAndroid.SHORT);
-              }
-            }}
+            onPress={clipboardHandler}
             color={Colors.info}
             style={styles.icon}
           />

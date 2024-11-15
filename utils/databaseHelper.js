@@ -1,8 +1,10 @@
-import app from "./firebaseConfig";
+import auth from "./firebaseConfig";
+import { app } from "./firebaseConfig";
 import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/firestore";
@@ -43,7 +45,6 @@ const getPwDataDocRefWithId = (userId, pwDataId) => {
 };
 
 export async function login(userName, password) {
-  const auth = getAuth(app);
   try {
     const userCredentials = await signInWithEmailAndPassword(
       auth,
@@ -58,7 +59,6 @@ export async function login(userName, password) {
 }
 
 export async function register(userName, password) {
-  const auth = getAuth(app);
   try {
     await createUserWithEmailAndPassword(auth, userName, password);
     return true;
@@ -68,8 +68,17 @@ export async function register(userName, password) {
   }
 }
 
+export async function logout() {
+  try {
+    await signOut(auth);
+    return true;
+  } catch (error) {
+    console.error("Logout failed: " + error.message);
+    return false;
+  }
+}
+
 export async function addNewPwData(pwData) {
-  const auth = getAuth(app);
   const user = auth.currentUser;
   if (!user) {
     throw new Error("User not authenticated");
@@ -89,7 +98,6 @@ export async function addNewPwData(pwData) {
 }
 
 export async function getAllPwData() {
-  const auth = getAuth(app);
   const userId = auth?.currentUser?.uid;
   if (!userId) throw new Error("User not authenticated");
 
@@ -108,7 +116,6 @@ export async function getAllPwData() {
 }
 
 export async function getPwDataWithId(id) {
-  const auth = getAuth(app);
   const userId = auth?.currentUser?.uid;
   if (!userId) throw new Error("User not authenticated");
 
@@ -125,7 +132,6 @@ export async function getPwDataWithId(id) {
 }
 
 export async function deletePwData(id) {
-  const auth = getAuth(app);
   const userId = auth?.currentUser?.uid;
   if (!userId) {
     throw new Error("User not authenticated");
@@ -141,7 +147,6 @@ export async function deletePwData(id) {
 }
 
 export async function updatePwData(id, pwData) {
-  const auth = getAuth(app);
   const userId = auth?.currentUser?.uid;
   if (!userId) {
     throw new Error("User not authenticated");

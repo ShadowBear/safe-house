@@ -20,7 +20,7 @@ import {
   HelperText,
 } from "react-native-paper";
 import { Link, useFocusEffect } from "@react-navigation/native";
-import { login, register } from "../utils/databaseHelper";
+import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
