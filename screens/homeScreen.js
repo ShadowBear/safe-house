@@ -1,34 +1,55 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useContext } from "react";
 import { useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardMini from "../components/pw-card-mini";
 import { FlatList } from "react-native-gesture-handler";
 import { Button } from "react-native-paper";
-import { DATA } from "../sample/data";
+import { DATA, NewData } from "../sample/data";
 import NewPwCard from "../components/new-pw-card";
 import { ActivityIndicator } from "react-native";
 import { FIREBASE_URL } from "@env";
+import { AuthContext } from "../context/AuthContext";
+import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
+import { useFocusEffect } from "@react-navigation/native";
+import { LinearTransition } from "react-native-reanimated";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
+  const authCtx = useContext(AuthContext);
+  const [accountPwData, setAccountPwData] = useState([]);
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, [DATA]);
+  useFocusEffect(
+    useCallback(() => {
+      async function fetchDataAsync() {
+        let data = await getAllPwData();
+        setAccountPwData(data);
+        setIsLoading(false);
+      }
+      fetchDataAsync();
+    }, [])
+  );
+
+  function deleteAccountPwData(id) {
+    const updatedPwData = accountPwData.filter((item) => item.id !== id);
+    setAccountPwData(updatedPwData);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.listContainer}>
-        <FlatList
-          data={DATA}
-          contentContainerStyle={{ gap: 6 }}
+        <Animated.FlatList
+          keyboardDismissMode="on-drag"
+          data={accountPwData}
+          contentContainerStyle={{ gap: 10 }}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <PwCardMini
               avatar={item.avatar}
-              title={item.category}
-              data={item.account}
+              title={item.title}
+              data={item.pwData}
+              id={item.id}
+              deleteCard={deleteAccountPwData}
             />
           )}
           style={styles.list}
@@ -40,6 +61,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             ) : null
           }
+          itemLayoutAnimation={LinearTransition}
         />
       </View>
       <View style={styles.newPwCardContainer}>

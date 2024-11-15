@@ -15,7 +15,11 @@ export default function PwCardDetails({
   user,
   password,
   isNewCardMode,
-  onPress,
+  onPressNew,
+  onPressSave,
+  onPressDelete,
+  id,
+  resetInputs,
 }) {
   const [userName, setUserName] = useState(user);
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -23,11 +27,21 @@ export default function PwCardDetails({
   const [pw, setPW] = useState(password);
   const pwRef = useRef(null);
   const [isEditMode, setEditMode] = useState(false);
+  const [prevUserName, setPrevUserName] = useState("");
+  const [prevPw, setPrevPw] = useState("");
 
   let actionButton = null;
   let editButton = null;
   let newPwText = null;
 
+  useEffect(() => {
+    if (resetInputs) {
+      setPW("");
+      setUserName("");
+    }
+  }, [resetInputs]);
+
+  // New Card Mode:
   if (isNewCardMode) {
     newPwText = <Text style={styles.newLabel}>New Password</Text>;
     actionButton = (
@@ -35,11 +49,10 @@ export default function PwCardDetails({
         icon="key-plus"
         mode="outlined"
         onPress={() => {
-          console.log("Add new PW");
+          onPressNew({ newAccount: { userName: userName, password: pw } });
           setPW("");
           setUserName("");
           Keyboard.dismiss();
-          onPress({ newAccount: { userName: userName, password: pw } });
         }}
         contentStyle={styles.button}
       >
@@ -47,13 +60,49 @@ export default function PwCardDetails({
       </Button>
     );
     editButton = <View></View>;
-  } else {
+  }
+  // Edit Mode Card Buttons:
+  else if (isEditMode) {
+    actionButton = (
+      <Button
+        icon="cancel"
+        mode="outlined"
+        onPress={() => {
+          // Reset Inputs and switch to none Edit Mode
+          setUserName(prevUserName);
+          setPW(prevPw);
+          setEditMode(false);
+        }}
+        contentStyle={styles.button}
+      >
+        Cancel
+      </Button>
+    );
+    editButton = (
+      <Button
+        icon="content-save-outline"
+        mode="outlined"
+        onPress={() => {
+          setEditMode(false);
+          // Todo: Save and update current Credentials change
+          onPressSave({
+            updatedPwData: { id: id, userName: userName, password: pw },
+          });
+        }}
+        contentStyle={styles.button}
+      >
+        Save
+      </Button>
+    );
+  }
+  // Default Edit and Delete Mode Card Buttons
+  else {
     actionButton = (
       <Button
         icon="delete-outline"
         mode="outlined"
         onPress={() => {
-          console.log("Delete");
+          onPressDelete({ id: id });
         }}
         contentStyle={styles.button}
       >
@@ -65,7 +114,6 @@ export default function PwCardDetails({
         icon="note-edit-outline"
         mode="outlined"
         onPress={() => {
-          console.log("Edit");
           editModeHandler();
         }}
         contentStyle={styles.button}
@@ -76,10 +124,11 @@ export default function PwCardDetails({
   }
 
   function editModeHandler() {
-    setEditMode(!isEditMode);
-    if (isEditMode) {
-      pwRef.current.focus();
-    }
+    //change Buttons to save/cancel and save original data for cancel
+    setEditMode(true);
+    setPrevPw(pw);
+    setPrevUserName(userName);
+    pwRef.current.focus();
   }
 
   return (
@@ -91,7 +140,9 @@ export default function PwCardDetails({
           mode="outlined"
           label="User"
           placeholder="User"
-          onChangeText={setUserName}
+          onChangeText={(text) => {
+            if (isEditMode || isNewCardMode) setUserName(text);
+          }}
           value={userName}
           style={styles.inputAcc}
         />
@@ -101,7 +152,10 @@ export default function PwCardDetails({
           mode="outlined"
           label="Password"
           placeholder="Password"
-          onChangeText={setPW}
+          // onChangeText={setPW}
+          onChangeText={(text) => {
+            if (isEditMode || isNewCardMode) setPW(text);
+          }}
           value={pw}
           style={styles.inputPw}
           secureTextEntry={pwIsVisible}

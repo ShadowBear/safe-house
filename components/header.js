@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import React from "react";
 import { Colors } from "../utils/Colors";
 
@@ -8,9 +8,9 @@ export default function CustomHeader() {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    marginLeft: 10,
+    marginLeft: 20,
     textAlign: "left",
     color: Colors.black,
   },

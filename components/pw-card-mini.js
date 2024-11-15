@@ -1,17 +1,36 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
 import React from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Colors } from "../utils/Colors";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
+import { deletePwData } from "../utils/databaseHelper";
+import * as Clipboard from "expo-clipboard";
 
-export default function PwCardMini({ avatar, title, data }) {
-  //console.log(data);
-
+export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
   const navigation = useNavigation();
 
   function showDetailsHandler() {
-    navigation.navigate("PwDetails", { accounts: data, category: title });
+    navigation.navigate("PwDetails", {
+      id: id,
+      accounts: data,
+      category: title,
+    });
+  }
+
+  function clipboardHandler() {
+    async function copyClipboard() {
+      await Clipboard.setStringAsync(data[0].password);
+      ToastAndroid.show(
+        `Copied password for ${data[0].userName}`,
+        ToastAndroid.SHORT
+      );
+    }
+    if (data.length > 0) {
+      copyClipboard();
+    } else {
+      ToastAndroid.show("No password available", ToastAndroid.SHORT);
+    }
   }
 
   return (
@@ -27,20 +46,19 @@ export default function PwCardMini({ avatar, title, data }) {
           </View>
           <Text style={styles.text}>{title}</Text>
           <QuardBtn
-            name={"eye"}
-            size={30}
+            name={"delete-outline"}
+            size={28}
             onPress={() => {
-              console.log("Press 2");
+              const result = deletePwData(id);
+              if (result) deleteCard(id);
             }}
             color={Colors.info}
             style={styles.icon}
           />
           <QuardBtn
             name={"content-copy"}
-            size={30}
-            onPress={() => {
-              console.log("Press 3");
-            }}
+            size={25}
+            onPress={clipboardHandler}
             color={Colors.info}
             style={styles.icon}
           />
