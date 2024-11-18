@@ -1,4 +1,10 @@
-import { Animated, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import React, { useCallback, useContext } from "react";
 import { useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
@@ -13,6 +19,7 @@ import { AuthContext } from "../context/AuthContext";
 import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearTransition } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,38 +43,47 @@ export default function HomeScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.listContainer}>
-        <Animated.FlatList
-          keyboardDismissMode="on-drag"
-          data={accountPwData}
-          contentContainerStyle={{ gap: 10 }}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PwCardMini
-              avatar={item.avatar}
-              title={item.title}
-              data={item.pwData}
-              id={item.id}
-              deleteCard={deleteAccountPwData}
-            />
-          )}
-          style={styles.list}
-          ListFooterComponent={
-            isLoading ? (
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={Colors.info} />
-                <Text>Loading...</Text>
-              </View>
-            ) : null
-          }
-          itemLayoutAnimation={LinearTransition}
-        />
+    <LinearGradient
+      style={StyleSheet.absoluteFillObject}
+      colors={[Colors.white, Colors.primary]}
+      start={{ x: 0, y: 0.7 }}
+      end={{ x: 0, y: 0 }}
+    >
+      <View style={styles.container}>
+        <View style={styles.listContainer}>
+          <Animated.FlatList
+            keyboardDismissMode="on-drag"
+            data={accountPwData}
+            contentContainerStyle={{ gap: 10 }}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <PwCardMini
+                avatar={item.avatar}
+                title={item.title}
+                data={item.pwData}
+                id={item.id}
+                deleteCard={deleteAccountPwData}
+              />
+            )}
+            style={styles.list}
+            ListFooterComponent={
+              isLoading ? (
+                <View
+                  style={{ justifyContent: "center", alignItems: "center" }}
+                >
+                  <ActivityIndicator size="large" color={Colors.secondary} />
+                  <Text>Loading...</Text>
+                </View>
+              ) : null
+            }
+            itemLayoutAnimation={LinearTransition}
+          />
+        </View>
+        <View style={styles.newPwCardContainer}>
+          <NewPwCard />
+        </View>
       </View>
-      <View style={styles.newPwCardContainer}>
-        <NewPwCard />
-      </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -76,14 +92,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.white,
+    // backgroundColor: Colors.background,
   },
   listContainer: {
     flex: 1,
     width: "100%",
     alignItems: "center",
     paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingTop: 10,
   },
   list: {
     width: "100%",
@@ -95,5 +111,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 10,
+    borderTopRightRadius: 18,
+    borderTopLeftRadius: 18,
+    backgroundColor: Colors.primary,
   },
 });

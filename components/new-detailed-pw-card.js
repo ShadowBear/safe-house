@@ -11,25 +11,18 @@ import { Button, TextInput } from "react-native-paper";
 import { Colors } from "../utils/Colors";
 import { showPasswordHandler } from "../utils/pwHelper";
 
-export default function PwCardDetails({
-  user,
-  password,
-  onPressSave,
-  onPressDelete,
-  id,
+export default function NewPwCardDetails({
+  onPressNew,
   resetInputs,
+  focus,
+  onCancel,
 }) {
-  const [userName, setUserName] = useState(user);
+  const [userName, setUserName] = useState("");
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
   const [eyeIcon, setEyeIcon] = useState("eye");
-  const [pw, setPW] = useState(password);
+  const [pw, setPW] = useState("");
   const pwRef = useRef(null);
-  const [isEditMode, setEditMode] = useState(false);
-  const [prevUserName, setPrevUserName] = useState("");
-  const [prevPw, setPrevPw] = useState("");
-
-  let actionButton = null;
-  let editButton = null;
+  const userNameInputRef = useRef(null);
 
   useEffect(() => {
     if (resetInputs) {
@@ -38,91 +31,24 @@ export default function PwCardDetails({
     }
   }, [resetInputs]);
 
-  if (isEditMode) {
-    actionButton = (
-      <Button
-        icon="cancel"
-        mode="outlined"
-        onPress={() => {
-          // Reset Inputs and switch to none Edit Mode
-          setUserName(prevUserName);
-          setPW(prevPw);
-          setEditMode(false);
-        }}
-        contentStyle={styles.secondaryButton}
-        textColor={Colors.secondary}
-      >
-        Cancel
-      </Button>
-    );
-    editButton = (
-      <Button
-        icon="content-save-outline"
-        mode="outlined"
-        onPress={() => {
-          setEditMode(false);
-          // Todo: Save and update current Credentials change
-          onPressSave({
-            updatedPwData: { id: id, userName: userName, password: pw },
-          });
-        }}
-        contentStyle={styles.button}
-        textColor={Colors.secondary}
-      >
-        Save
-      </Button>
-    );
-  }
-  // Default Edit and Delete Mode Card Buttons
-  else {
-    actionButton = (
-      <Button
-        icon="delete-outline"
-        mode="elevated"
-        onPress={() => {
-          onPressDelete({ id: id });
-        }}
-        contentStyle={styles.secondaryButton}
-        textColor={Colors.white}
-      >
-        Delete
-      </Button>
-    );
-    editButton = (
-      <Button
-        icon="note-edit-outline"
-        mode="elevated"
-        onPress={() => {
-          editModeHandler();
-        }}
-        contentStyle={styles.button}
-        textColor={Colors.white}
-      >
-        Edit
-      </Button>
-    );
-  }
-
-  function editModeHandler() {
-    //change Buttons to save/cancel and save original data for cancel
-    setEditMode(true);
-    setPrevPw(pw);
-    setPrevUserName(userName);
-    pwRef.current.focus();
-  }
+  useEffect(() => {
+    if (focus) {
+      setTimeout(() => userNameInputRef.current.focus(), 100);
+    }
+  }, [focus]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.newContainer}>
       <View style={styles.inputContainer}>
+        <Text style={styles.newLabel}>New Password</Text>
         <TextInput
+          ref={userNameInputRef}
           activeOutlineColor={Colors.secondary}
           outlineColor={Colors.primary}
           mode="outlined"
           label="User"
           placeholder="User"
-          onChangeText={(text) => {
-            if (isEditMode) setUserName(text);
-          }}
+          onChangeText={setUserName}
           value={userName}
           style={styles.inputAcc}
         />
@@ -133,10 +59,7 @@ export default function PwCardDetails({
           mode="outlined"
           label="Password"
           placeholder="Password"
-          // onChangeText={setPW}
-          onChangeText={(text) => {
-            if (isEditMode) setPW(text);
-          }}
+          onChangeText={setPW}
           value={pw}
           style={styles.inputPw}
           secureTextEntry={pwIsVisible}
@@ -156,17 +79,46 @@ export default function PwCardDetails({
         />
       </View>
       <View style={styles.buttonContainer}>
-        <View style={styles.divider}>{actionButton}</View>
-        <View style={styles.divider}>{editButton}</View>
+        <View style={styles.divider}>
+          <Button
+            icon="cancel"
+            mode="elevated"
+            onPress={() => {
+              setUserName("");
+              setPW("");
+              onCancel();
+            }}
+            contentStyle={styles.secondaryButton}
+            textColor={Colors.white}
+          >
+            Cancel
+          </Button>
+        </View>
+        <View style={styles.divider}>
+          <Button
+            icon="note-plus-outline"
+            mode="elevated"
+            onPress={() => {
+              onPressNew({ newAccount: { userName: userName, password: pw } });
+              setPW("");
+              setUserName("");
+              Keyboard.dismiss();
+            }}
+            contentStyle={styles.button}
+            textColor={Colors.white}
+          >
+            Add
+          </Button>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: 180,
-    width: "auto",
+  newContainer: {
+    height: 210,
+    width: "100%",
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: Colors.white,
@@ -178,6 +130,12 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 3,
     margin: 5,
+  },
+  newLabel: {
+    fontSize: 15,
+    fontWeight: "bold",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   inputContainer: {
     flex: 1,

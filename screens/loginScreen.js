@@ -19,7 +19,7 @@ import {
   Button,
   HelperText,
 } from "react-native-paper";
-import { Link, useFocusEffect } from "@react-navigation/native";
+import { Link, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
 
@@ -118,7 +118,7 @@ export default function LoginScreen({ navigation }) {
           <Checkbox
             status={checked ? "checked" : "unchecked"}
             onPress={() => setChecked((prev) => !prev)}
-            color={Colors.info}
+            color={Colors.secondary}
           />
           <Text>Remember Me</Text>
         </View>
@@ -151,7 +151,7 @@ export default function LoginScreen({ navigation }) {
                 }
               />
             }
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
           <HelperText type="error" visible={!matching}>
             Passwords don´t match
@@ -187,7 +187,7 @@ export default function LoginScreen({ navigation }) {
                 clearFields();
               },
               checkedColor: Colors.white,
-              uncheckedColor: Colors.info,
+              uncheckedColor: Colors.secondary,
               style:
                 segmentValue === "Login"
                   ? styles.segmentButtonSelected
@@ -199,14 +199,14 @@ export default function LoginScreen({ navigation }) {
               onPress: () => {
                 clearFields();
               },
-              checkedColor: Colors.info,
+              checkedColor: Colors.secondary,
               style: [
                 segmentValue === "Register"
                   ? styles.segmentButtonSelected
                   : styles.segmentButton,
               ],
               checkedColor: Colors.white,
-              uncheckedColor: Colors.info,
+              uncheckedColor: Colors.secondary,
             },
           ]}
         />
@@ -226,7 +226,7 @@ export default function LoginScreen({ navigation }) {
             mode="outlined"
             value={userName}
             onChangeText={setUserName}
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
           <TextInput
             ref={inputRef}
@@ -250,7 +250,7 @@ export default function LoginScreen({ navigation }) {
                 }
               />
             }
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
           <HelperText type="error" visible={!validLogin}>
             {errorMessage}
@@ -325,11 +325,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   segmentButtonSelected: {
-    backgroundColor: Colors.info,
+    backgroundColor: Colors.primary,
   },
 
   loginBtn: {
-    backgroundColor: Colors.info,
+    backgroundColor: Colors.primary,
     flexDirection: "row-reverse",
   },
   btnContainer: {

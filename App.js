@@ -39,6 +39,7 @@ export default function App() {
             <Stack.Navigator
               screenOptions={({ route, navigation }) => ({
                 headerShadowVisible: false,
+                headerStyle: { backgroundColor: Colors.primary },
                 headerTitle: () => <CustomHeader />,
                 headerRight: () => {
                   if (route.name !== "Login") {
@@ -76,7 +77,11 @@ export default function App() {
                   }}
                 />
               ) : (
-                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen
+                  options={{ headerStyle: { backgroundColor: Colors.white } }}
+                  name="Login"
+                  component={LoginScreen}
+                />
               )}
               {/* <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="Home" component={HomeScreen} /> */}

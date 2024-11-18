@@ -28,26 +28,29 @@ export default function NewPwCard() {
   return (
     <View style={styles.container}>
       <View style={styles.avatar}>
-        <MaterialCommunityIcons name="new-box" size={24} color={Colors.info} />
+        <MaterialCommunityIcons
+          name="new-box"
+          size={24}
+          color={Colors.secondary}
+        />
       </View>
       <View style={styles.textInputContainer}>
-        {/* <Text>Sample Mitte</Text> */}
         <TextInput
           label="Add new"
           mode="outlined"
           value={categoryName}
           onChangeText={setCategoryName}
-          activeOutlineColor={Colors.info}
+          activeOutlineColor={Colors.secondary}
           placeholder="Add new"
           style={styles.textInput}
         />
       </View>
       <View style={styles.btn}>
         <QuardBtn
-          name="key-plus"
+          name="plus"
           size={24}
           onPress={addNewCategoryHandler}
-          color={Colors.info}
+          color={Colors.primary}
           style={styles.addBtn}
         />
       </View>
@@ -63,13 +66,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.info,
+    borderColor: Colors.white,
+    backgroundColor: Colors.white,
+    boxShadow: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   avatar: {
-    width: "15%",
+    width: 55,
     paddingVertical: 10,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: Colors.lightGrey,
+    borderRadius: 8,
+    marginVertical: 12,
+    marginLeft: 10,
   },
   textInputContainer: {
     width: "70%",
@@ -93,6 +106,6 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     borderColor: Colors.info,
-    backgroundColor: Colors.lightGrey,
+    backgroundColor: Colors.primary100,
   },
 });
