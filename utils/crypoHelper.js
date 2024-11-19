@@ -22,7 +22,6 @@ export const encryptData = (data, key) => {
 export const decrypt = (encryptData, key) => {
   async function decrypt(encryptData, key) {
     try {
-      console.log("Encrypting data: ", encryptData);
       const bytes = await CryptoEs.AES.decrypt(encryptData, key);
       return bytes.toString(CryptoEs.enc.Utf8);
     } catch (error) {
