@@ -28,6 +28,8 @@ const createPwDataObject = (pwData) => {
     .filter((instance) => instance)
     .map((instance) => Object.assign({}, instance));
 
+  console.log("Credentials: ", credentials);
+
   return {
     avatar: pwData.avatar,
     title: pwData.title,

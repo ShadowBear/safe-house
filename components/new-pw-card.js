@@ -6,7 +6,7 @@ import { TextInput } from "react-native-paper";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
 import { addNewPwData } from "../utils/databaseHelper";
-import { PwData, User, Credential, randomAvatar } from "../sample/pwData";
+import { PwData, User, Credential, randomAvatar } from "../model/pwData";
 
 export default function NewPwCard() {
   const [categoryName, setCategoryName] = useState("");

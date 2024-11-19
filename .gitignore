@@ -37,3 +37,6 @@ yarn-error.*
 
 # database helper
 firebaseConfig.js
+
+#Security infos
+securityStore.js

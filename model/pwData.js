@@ -1,5 +1,6 @@
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import { encryptData } from "../utils/crypoHelper";
 
 export class User {
   constructor(userName, password, categories = []) {
@@ -35,8 +36,8 @@ export class PwData {
     this.id = id ? id : uuidv4();
   }
 
-  addCredentials(userName, password) {
-    const credentials = new Credential(userName, password);
+  addCredentials(userName, password, key) {
+    const credentials = new Credential(userName, password, null, key);
     this.pwData.push(credentials);
   }
 
@@ -76,7 +77,6 @@ export class Credential {
     this.password = password;
     this.id = id ? id : uuidv4();
   }
-
   displayInfo() {
     console.log(`Username: ${this.userName}`);
     console.log(`Password: ${this.password}`);

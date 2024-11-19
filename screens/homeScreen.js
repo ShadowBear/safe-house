@@ -20,6 +20,8 @@ import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearTransition } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
+import { decrypt, encryptData, generateKey } from "../utils/crypoHelper";
+import { Security } from "../utils/securityStore";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +38,23 @@ export default function HomeScreen({ navigation }) {
       fetchDataAsync();
     }, [])
   );
+
+  useEffect(() => {
+    async function getAndSetKey() {
+      try {
+        if (!authCtx?.user?.password) {
+          console.log("Error Ctx null");
+          //Todo: check how to get Ctx here if null?
+          return null;
+        }
+        const key = await generateKey(authCtx.user.password, Security.Salt);
+        authCtx.setKey(key);
+      } catch (error) {
+        console.error("Error setting key:", error);
+      }
+    }
+    getAndSetKey();
+  }, []);
 
   function deleteAccountPwData(id) {
     const updatedPwData = accountPwData.filter((item) => item.id !== id);

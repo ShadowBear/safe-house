@@ -22,6 +22,8 @@ import {
 import { Link, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
+import { generateKey } from "../utils/crypoHelper";
+import { Security } from "../utils/securityStore";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -64,20 +66,30 @@ export default function LoginScreen({ navigation }) {
       }
     }
 
-    let success = false;
-
+    setUser({ userName: user, password: userPW });
     if (segmentValue === "Login") {
-      success = await login(user, userPW);
+      await login(user, userPW);
     } else if (segmentValue === "Register" && pw === rePw) {
-      success = await register(userName, pw);
+      await register(userName, pw);
     }
-    if (success) {
-      setUser({ userName: user, password: userPW });
-      navigation.navigate("Home", { userName: user });
-    } else {
-      setErrorMessage("Failed to login check User Name and Password");
-      setValidLogin(false);
-    }
+    // if (success) {
+    //   console.log("Success");
+    //   console.log("Set User");
+    //   let key = await generateKey(
+    //     pw,
+    //     Security.Salt,
+    //     Security.Cost,
+    //     Security.KeySize
+    //   );
+    //   console.log("Created Key: ", key);
+    //   setKey(key);
+    //   console.log("Key Set");
+    //   //if (key) navigation.navigate("Home", { userName: user });
+    //   console.log("End of Success");
+    // } else {
+    //   setErrorMessage("Failed to login check User Name and Password");
+    //   setValidLogin(false);
+    // }
   }, [segmentValue, userName, pw, rePw, navigation]);
 
   const clearFields = () => {

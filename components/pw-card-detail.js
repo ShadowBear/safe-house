@@ -6,10 +6,12 @@ import {
   View,
   Keyboard,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Button, TextInput } from "react-native-paper";
 import { Colors } from "../utils/Colors";
 import { showPasswordHandler } from "../utils/pwHelper";
+import { AuthContext } from "../context/AuthContext";
+import { decrypt } from "../utils/crypoHelper";
 
 export default function PwCardDetails({
   user,
@@ -27,6 +29,7 @@ export default function PwCardDetails({
   const [isEditMode, setEditMode] = useState(false);
   const [prevUserName, setPrevUserName] = useState("");
   const [prevPw, setPrevPw] = useState("");
+  const authCtx = useContext(AuthContext);
 
   let actionButton = null;
   let editButton = null;
@@ -38,11 +41,20 @@ export default function PwCardDetails({
     }
   }, [resetInputs]);
 
+  useEffect(() => {
+    async function showDecrypt() {
+      if (!authCtx.key) return;
+      const decryptedPw = await decrypt(password, authCtx.key);
+      setPW(decryptedPw);
+    }
+    showDecrypt();
+  }, [password]);
+
   if (isEditMode) {
     actionButton = (
       <Button
         icon="cancel"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           // Reset Inputs and switch to none Edit Mode
           setUserName(prevUserName);
@@ -50,7 +62,7 @@ export default function PwCardDetails({
           setEditMode(false);
         }}
         contentStyle={styles.secondaryButton}
-        textColor={Colors.secondary}
+        textColor={Colors.white}
       >
         Cancel
       </Button>
@@ -58,7 +70,7 @@ export default function PwCardDetails({
     editButton = (
       <Button
         icon="content-save-outline"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           setEditMode(false);
           // Todo: Save and update current Credentials change
@@ -67,7 +79,7 @@ export default function PwCardDetails({
           });
         }}
         contentStyle={styles.button}
-        textColor={Colors.secondary}
+        textColor={Colors.white}
       >
         Save
       </Button>

@@ -1,4 +1,4 @@
-import { PwData, PwDetails, Credential } from "./pwData";
+import { PwData, PwDetails, Credential } from "../model/pwData";
 
 export const NewData = [
   new PwData("account-tie", "PayPal", [

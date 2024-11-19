@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardDetails from "../components/pw-card-detail";
 import { FlatList } from "react-native-gesture-handler";
@@ -21,12 +21,14 @@ import {
   getPwDataWithId,
   updatePwData,
 } from "../utils/databaseHelper";
-import { PwData, Credential } from "../sample/pwData";
+import { PwData, Credential } from "../model/pwData";
 import { LinearTransition } from "react-native-reanimated";
 import { FAB } from "react-native-paper";
 import { BlurView } from "expo-blur";
 import NewPwCardDetails from "../components/new-detailed-pw-card";
 import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
+import { encryptData } from "../utils/crypoHelper";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
@@ -36,6 +38,8 @@ export default function PwDetailsScreen({ navigation, route }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [resetInputs, setResetInputs] = useState(false);
   const [focus, setFocus] = useState(false);
+
+  const authCtx = useContext(AuthContext);
 
   useEffect(() => {
     if (route?.params?.accounts) {
@@ -68,15 +72,15 @@ export default function PwDetailsScreen({ navigation, route }) {
 
   async function addNewAccountHandler({ newAccount }) {
     //Check for correct account entry
-    if (!newAccount?.userName || !newAccount?.password) return false;
+    if (!newAccount?.userName || !newAccount?.password || !authCtx?.key)
+      return false;
 
     //Create new credential element
     try {
       const pwDataId = pwDataCollectionId;
-      let newCredentialsElement = new Credential(
-        newAccount.userName,
-        newAccount.password
-      );
+      const key = authCtx.key;
+      const pw = await encryptData(newAccount.password, key);
+      let newCredentialsElement = new Credential(newAccount.userName, pw);
       const dataRef = await getPwDataWithId(pwDataId);
       dataRef.pwData.push(newCredentialsElement);
       const result = await updatePwData(pwDataId, dataRef);
@@ -100,11 +104,14 @@ export default function PwDetailsScreen({ navigation, route }) {
       //Get original object
       const dataRef = await getPwDataWithId(pwDataId);
 
+      const key = authCtx.key;
+      const pw = await encryptData(updatedPwData.password, key);
+
       //Create new credential
       dataRef.pwData.forEach((element) => {
         if (element.id === updatedPwData.id) {
           element.userName = updatedPwData.userName;
-          element.password = updatedPwData.password;
+          element.password = pw;
         }
       });
 
