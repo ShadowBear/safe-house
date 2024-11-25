@@ -1,14 +1,17 @@
 import { Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
-import React from "react";
+import React, { useContext } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Colors } from "../utils/Colors";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
 import { deletePwData } from "../utils/databaseHelper";
 import * as Clipboard from "expo-clipboard";
+import { decrypt } from "../utils/crypoHelper";
+import { AuthContext } from "../context/AuthContext";
 
 export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
   const navigation = useNavigation();
+  const authCtx = useContext(AuthContext);
 
   function showDetailsHandler() {
     navigation.navigate("PwDetails", {
@@ -20,7 +23,12 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
 
   function clipboardHandler() {
     async function copyClipboard() {
-      await Clipboard.setStringAsync(data[0].password);
+      if (!authCtx?.key) {
+        ToastAndroid.show("No encryption key available", ToastAndroid.SHORT);
+        return;
+      }
+      const pw = await decrypt(data[0].password, authCtx.key);
+      await Clipboard.setStringAsync(pw);
       ToastAndroid.show(
         `Copied password for ${data[0].userName}`,
         ToastAndroid.SHORT

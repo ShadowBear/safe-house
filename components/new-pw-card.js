@@ -17,6 +17,7 @@ export default function NewPwCard() {
     //Todo: Check if category name already exists
     const sample = new PwData(avatar, categoryName, []);
     addNewPwData(sample);
+    setCategoryName("");
     navigation.navigate("PwDetails", {
       accounts: sample.pwData,
       category: sample.title,

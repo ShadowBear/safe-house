@@ -5,7 +5,7 @@ import {
   Text,
   View,
 } from "react-native";
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useLayoutEffect } from "react";
 import { useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardMini from "../components/pw-card-mini";
@@ -16,17 +16,24 @@ import NewPwCard from "../components/new-pw-card";
 import { ActivityIndicator } from "react-native";
 import { FIREBASE_URL } from "@env";
 import { AuthContext } from "../context/AuthContext";
-import { getAllPwData, getPwDataWithId } from "../utils/databaseHelper";
+import { getAllPwData, getPwDataWithId, logout } from "../utils/databaseHelper";
 import { useFocusEffect } from "@react-navigation/native";
 import { LinearTransition } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { decrypt, encryptData, generateKey } from "../utils/crypoHelper";
+import {
+  decrypt,
+  encryptData,
+  generateKey,
+  PW_KEY,
+} from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const authCtx = useContext(AuthContext);
   const [accountPwData, setAccountPwData] = useState([]);
+  const [filteredData, setFilteredPwData] = useState(accountPwData);
+  const [filter, setFilter] = useState("");
 
   useFocusEffect(
     useCallback(() => {
@@ -38,11 +45,48 @@ export default function HomeScreen({ navigation }) {
       fetchDataAsync();
     }, [])
   );
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerSearchBarOptions: {
+        placeholder: "Search Password",
+        hideWhenScrolling: true,
+        onChangeText: (text) => {
+          text.persist();
+          const plainText = text.nativeEvent?.text;
+          setFilter(plainText ?? "");
+        },
+      },
+    });
+  }, [navigation]);
+
+  useEffect(() => {
+    if (filter !== "") {
+      setFilteredPwData(
+        accountPwData.filter((text) => {
+          return text.title.toLowerCase().startsWith(filter.toLowerCase());
+        })
+      );
+    } else {
+      setFilteredPwData(accountPwData);
+    }
+  }, [filter, accountPwData]);
 
   useEffect(() => {
     async function getAndSetKey() {
       try {
+        //if (RNSecureStorage === null) console.log("RNSecureStorage is null");
+        //if (RNSecureStorage?.exist(PW_KEY)) {
+        //RNSecureStorage?.getItem(PW_KEY).then((result) => {
+        //   authCtx.setUser({
+        //     userName: authCtx.user.userName,
+        //     password: result,
+        //   });
+        // });
+        // }
         if (!authCtx?.user?.password) {
+          //logout();
+          console.log(authCtx);
+          console.log(authCtx.user);
           console.log("Error Ctx null");
           //Todo: check how to get Ctx here if null?
           return null;
@@ -54,7 +98,7 @@ export default function HomeScreen({ navigation }) {
       }
     }
     getAndSetKey();
-  }, []);
+  }, [authCtx]);
 
   function deleteAccountPwData(id) {
     const updatedPwData = accountPwData.filter((item) => item.id !== id);
@@ -72,7 +116,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.listContainer}>
           <Animated.FlatList
             keyboardDismissMode="on-drag"
-            data={accountPwData}
+            data={filteredData}
             contentContainerStyle={{ gap: 10 }}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (

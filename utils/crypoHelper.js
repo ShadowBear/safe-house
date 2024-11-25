@@ -1,5 +1,6 @@
 import CryptoEs from "crypto-es";
 
+export const PW_KEY = "MaY!Kn0W!t0rN0T?";
 export const generateKey = (password, salt) =>
   CryptoEs.PBKDF2(password, salt, {
     keySize: 512 / 32,

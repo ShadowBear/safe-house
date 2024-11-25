@@ -154,44 +154,48 @@ export default function PwDetailsScreen({ navigation, route }) {
         start={{ x: 0, y: 0.7 }}
         end={{ x: 0, y: 0 }}
       >
-        <View style={StyleSheet.absoluteFillObject}>
-          <Animated.FlatList
-            data={accountList}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <PwCardDetails
-                user={item.userName}
-                password={item.password}
-                isNewCardMode={false}
-                onPressSave={updatePwDataHandler}
-                onPressDelete={deletePwDataHandler}
-                id={item.id}
-              />
-            )}
-            style={styles.list}
-            contentContainerStyle={{ gap: 10 }}
-            ListFooterComponent={
-              isLoading ? (
-                <View
-                  style={{ justifyContent: "center", alignItems: "center" }}
-                >
-                  <ActivityIndicator size="large" color={Colors.secondary} />
-                  <Text>Loading...</Text>
-                </View>
-              ) : null
-            }
-            itemLayoutAnimation={LinearTransition}
-          />
-          <FAB
-            icon="plus"
-            style={styles.fab}
-            onPress={() => {
-              setModalVisible(true);
-              setFocus(true);
-            }}
-            color={Colors.white}
-          />
-        </View>
+        <KeyboardAvoidingView style={StyleSheet.absoluteFillObject}>
+          <View style={StyleSheet.absoluteFillObject}>
+            <Animated.FlatList
+              removeClippedSubviews={false}
+              windowSize={3}
+              data={accountList}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <PwCardDetails
+                  user={item.userName}
+                  password={item.password}
+                  isNewCardMode={false}
+                  onPressSave={updatePwDataHandler}
+                  onPressDelete={deletePwDataHandler}
+                  id={item.id}
+                />
+              )}
+              style={styles.list}
+              contentContainerStyle={{ gap: 10 }}
+              ListFooterComponent={
+                isLoading ? (
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <ActivityIndicator size="large" color={Colors.secondary} />
+                    <Text>Loading...</Text>
+                  </View>
+                ) : null
+              }
+              itemLayoutAnimation={LinearTransition}
+            />
+            <FAB
+              icon="plus"
+              style={styles.fab}
+              onPress={() => {
+                setModalVisible(true);
+                setFocus(true);
+              }}
+              color={Colors.white}
+            />
+          </View>
+        </KeyboardAvoidingView>
       </LinearGradient>
       <Modal
         animationType="slide"
@@ -252,6 +256,7 @@ const styles = StyleSheet.create({
 
   list: {
     paddingHorizontal: 5,
+    flex: 1,
   },
 
   fab: {

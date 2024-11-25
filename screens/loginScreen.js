@@ -22,7 +22,7 @@ import {
 import { Link, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
-import { generateKey } from "../utils/crypoHelper";
+import { generateKey, PW_KEY } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
 
 export default function LoginScreen({ navigation }) {
@@ -67,9 +67,12 @@ export default function LoginScreen({ navigation }) {
     }
 
     setUser({ userName: user, password: userPW });
+    console.log("Pw:", pw, "userPW: ", userPW);
     if (segmentValue === "Login") {
+      //RNSecureStorage?.setItem(PW_KEY, userPW);
       await login(user, userPW);
     } else if (segmentValue === "Register" && pw === rePw) {
+      //RNSecureStorage?.setItem(PW_KEY, pw);
       await register(userName, pw);
     }
     // if (success) {

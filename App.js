@@ -8,7 +8,7 @@ import * as React from "react";
 import CustomHeader from "./components/header";
 import { PaperProvider } from "react-native-paper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { onAuthStateChanged } from "firebase/auth";
 import auth from "./utils/firebaseConfig";
 import { Colors } from "./utils/Colors";
@@ -20,15 +20,19 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [loggedIn, setLoggedIn] = React.useState(false);
+  const authCtx = React.useContext(AuthContext);
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log("myUser", user);
+        authCtx.setUser({ user: user.email, password: null });
         setLoggedIn(true);
       } else {
         setLoggedIn(false);
       }
     });
+    return unsubscribe;
   }, []);
 
   return (
@@ -48,7 +52,15 @@ export default function App() {
                         onPress={() => {
                           async function signOut() {
                             result = await logout();
-                            if (result) navigation.replace("Login");
+                            if (result) {
+                              let currentScreen = navigation
+                                .getState()
+                                .routes.slice(-1)[0];
+                              if (currentScreen.name !== "Home") {
+                                //Switch to Home before it gets replaced
+                                navigation.replace("Home");
+                              }
+                            }
                           }
                           signOut();
                         }}
@@ -66,16 +78,7 @@ export default function App() {
               })}
             >
               {loggedIn ? (
-                <Stack.Screen
-                  name="Home"
-                  component={HomeScreen}
-                  options={{
-                    headerSearchBarOptions: {
-                      placeholder: "Search Password",
-                      hideWhenScrolling: true,
-                    },
-                  }}
-                />
+                <Stack.Screen name="Home" component={HomeScreen} />
               ) : (
                 <Stack.Screen
                   options={{ headerStyle: { backgroundColor: Colors.white } }}
