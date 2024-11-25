@@ -24,6 +24,7 @@ import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
 import { generateKey, PW_KEY } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -65,34 +66,17 @@ export default function LoginScreen({ navigation }) {
         return;
       }
     }
-
-    setUser({ userName: user, password: userPW });
-    console.log("Pw:", pw, "userPW: ", userPW);
-    if (segmentValue === "Login") {
-      //RNSecureStorage?.setItem(PW_KEY, userPW);
-      await login(user, userPW);
-    } else if (segmentValue === "Register" && pw === rePw) {
-      //RNSecureStorage?.setItem(PW_KEY, pw);
-      await register(userName, pw);
+    try {
+      const jsonUser = JSON.stringify({ user: user, password: userPW });
+      await AsyncStorage.setItem(Security.PW_KEY_User, jsonUser);
+      if (segmentValue === "Login") {
+        await login(user, userPW);
+      } else if (segmentValue === "Register" && pw === rePw) {
+        await register(userName, pw);
+      }
+    } catch (error) {
+      console.error("Login or Register failed", error);
     }
-    // if (success) {
-    //   console.log("Success");
-    //   console.log("Set User");
-    //   let key = await generateKey(
-    //     pw,
-    //     Security.Salt,
-    //     Security.Cost,
-    //     Security.KeySize
-    //   );
-    //   console.log("Created Key: ", key);
-    //   setKey(key);
-    //   console.log("Key Set");
-    //   //if (key) navigation.navigate("Home", { userName: user });
-    //   console.log("End of Success");
-    // } else {
-    //   setErrorMessage("Failed to login check User Name and Password");
-    //   setValidLogin(false);
-    // }
   }, [segmentValue, userName, pw, rePw, navigation]);
 
   const clearFields = () => {

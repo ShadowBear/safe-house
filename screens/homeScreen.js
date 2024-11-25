@@ -27,6 +27,7 @@ import {
   PW_KEY,
 } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -74,31 +75,21 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     async function getAndSetKey() {
       try {
-        //if (RNSecureStorage === null) console.log("RNSecureStorage is null");
-        //if (RNSecureStorage?.exist(PW_KEY)) {
-        //RNSecureStorage?.getItem(PW_KEY).then((result) => {
-        //   authCtx.setUser({
-        //     userName: authCtx.user.userName,
-        //     password: result,
-        //   });
-        // });
-        // }
-        if (!authCtx?.user?.password) {
-          //logout();
-          console.log(authCtx);
-          console.log(authCtx.user);
-          console.log("Error Ctx null");
-          //Todo: check how to get Ctx here if null?
-          return null;
+        const userPWJson = await AsyncStorage.getItem(Security.PW_KEY_User);
+        const userData = userPWJson !== null ? JSON.parse(userPWJson) : null;
+        if (!userData?.password || !userData?.user) {
+          logout();
+          return;
         }
-        const key = await generateKey(authCtx.user.password, Security.Salt);
+        let key = await generateKey(userData.password, Security.Salt);
         authCtx.setKey(key);
+        console.log("Key", key);
       } catch (error) {
         console.error("Error setting key:", error);
       }
     }
     getAndSetKey();
-  }, [authCtx]);
+  }, [authCtx.key]);
 
   function deleteAccountPwData(id) {
     const updatedPwData = accountPwData.filter((item) => item.id !== id);
