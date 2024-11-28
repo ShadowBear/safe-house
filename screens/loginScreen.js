@@ -1,4 +1,11 @@
-import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 import React, {
   isValidElement,
   useCallback,
@@ -25,6 +32,8 @@ import { AuthContext } from "../context/AuthContext";
 import { generateKey, PW_KEY } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import auth from "../utils/firebaseConfig";
+import { sendEmailVerification } from "firebase/auth";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -71,6 +80,19 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem(Security.PW_KEY_User, jsonUser);
       if (segmentValue === "Login") {
         await login(user, userPW);
+        if (!auth.currentUser.emailVerified) {
+          //Todo give better user feedback with modal?
+          Alert.alert(
+            "Email not verified",
+            "Please verify your email to continue",
+            [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+          );
+          // ToastAndroid.show(
+          //   "Please verify your email address before logging in.",
+          //   ToastAndroid.LONG
+          // );
+          return;
+        }
       } else if (segmentValue === "Register" && pw === rePw) {
         await register(userName, pw);
       }

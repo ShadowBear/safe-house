@@ -83,7 +83,6 @@ export default function HomeScreen({ navigation }) {
         }
         let key = await generateKey(userData.password, Security.Salt);
         authCtx.setKey(key);
-        console.log("Key", key);
       } catch (error) {
         console.error("Error setting key:", error);
       }

@@ -24,16 +24,15 @@ export default function App() {
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("myUser", user);
-        authCtx.setUser({ user: user.email, password: null });
+      console.log("Verification State: ", auth?.currentUser?.emailVerified);
+      if (user && auth?.currentUser?.emailVerified) {
         setLoggedIn(true);
       } else {
         setLoggedIn(false);
       }
     });
     return unsubscribe;
-  }, []);
+  }, [auth, auth?.currentUser?.emailVerified]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

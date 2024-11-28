@@ -8,6 +8,7 @@ import {
   Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
 import React, { useContext, useEffect } from "react";
 import { Colors } from "../utils/Colors";
@@ -154,7 +155,10 @@ export default function PwDetailsScreen({ navigation, route }) {
         start={{ x: 0, y: 0.7 }}
         end={{ x: 0, y: 0 }}
       >
-        <KeyboardAvoidingView style={StyleSheet.absoluteFillObject}>
+        <KeyboardAvoidingView
+          style={StyleSheet.absoluteFillObject}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
           <View style={StyleSheet.absoluteFillObject}>
             <Animated.FlatList
               removeClippedSubviews={false}
