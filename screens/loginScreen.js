@@ -66,7 +66,8 @@ export default function LoginScreen({ navigation }) {
     let user = userName;
 
     if (pw.length === 0 && userName.length === 0) {
-      user = "ben1@mail.com";
+      // user = "ben1@mail.com";
+      user = "boyo@byom.de";
       userPW = "Test123!";
     } else {
       let valid = checkValidate();
@@ -80,17 +81,13 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem(Security.PW_KEY_User, jsonUser);
       if (segmentValue === "Login") {
         await login(user, userPW);
-        if (!auth.currentUser.emailVerified) {
+        if (!auth?.currentUser?.emailVerified) {
           //Todo give better user feedback with modal?
           Alert.alert(
             "Email not verified",
             "Please verify your email to continue",
             [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
           );
-          // ToastAndroid.show(
-          //   "Please verify your email address before logging in.",
-          //   ToastAndroid.LONG
-          // );
           return;
         }
       } else if (segmentValue === "Register" && pw === rePw) {
@@ -117,9 +114,24 @@ export default function LoginScreen({ navigation }) {
   }, [pw, rePw]);
 
   const checkValidate = () => {
-    let valid = userName.length > 5 && pw.length > 5 && userName.includes("@");
+    const pwRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&@$!%*?&}<>{=()[\]])[A-Za-z\d@$!%*?&}<>{=()[\]]+$/;
+    let pwValidate = pwRegex.test(pw);
+    let valid =
+      userName.length > 5 &&
+      pw.length > 7 &&
+      userName.includes("@") &&
+      pwValidate;
+
+    if (!pwValidate) {
+      setErrorMessage(
+        "Missing Password complexity press info for more details:"
+      );
+    } else if (!valid) {
+      setErrorMessage("Password or Email is not valid!");
+    }
+
     setValidLogin(valid);
-    if (!valid) setErrorMessage("Password or Email is not valid!");
     return valid;
   };
 
@@ -273,9 +285,26 @@ export default function LoginScreen({ navigation }) {
             }
             activeOutlineColor={Colors.secondary}
           />
-          <HelperText type="error" visible={!validLogin}>
-            {errorMessage}
-          </HelperText>
+          <View>
+            {validLogin ? null : (
+              <View style={styles.errorContainer}>
+                <HelperText type="error">{errorMessage}</HelperText>
+                <MaterialCommunityIcons
+                  name="information-outline"
+                  color={Colors.error}
+                  size={25}
+                  style={{ paddingRight: 5, paddingTop: 1 }}
+                  onPress={() =>
+                    Alert.alert(
+                      "Higher Security Required:",
+                      " Password must contain at least: \n 1 uppercase letters\n 1 lowercase letters\n 1 special character\n 1 digit",
+                      [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+                    )
+                  }
+                />
+              </View>
+            )}
+          </View>
         </View>
         <View style={styles.checkboxContainer}>{loginOrRegisterInputs}</View>
         <View style={styles.btnContainer}>
@@ -317,6 +346,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 0,
     height: 150,
+  },
+  errorContainer: {
+    flexDirection: "row",
   },
   welcomeText: {
     fontSize: 18,

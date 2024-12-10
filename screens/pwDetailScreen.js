@@ -98,7 +98,6 @@ export default function PwDetailsScreen({ navigation, route }) {
   }
 
   //Todo: Adjust Update to handle nested credentials
-
   async function updatePwDataHandler({ updatedPwData }) {
     try {
       const pwDataId = pwDataCollectionId;
