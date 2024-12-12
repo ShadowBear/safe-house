@@ -30,4 +30,5 @@ export const Colors = {
   transparent: "transparent",
   background: "#f7f7f7",
   delete: "#f70081",
+  red: "#dd0101",
 };

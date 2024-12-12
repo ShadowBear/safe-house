@@ -14,7 +14,9 @@ import auth from "./utils/firebaseConfig";
 import { Colors } from "./utils/Colors";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { logout } from "./utils/databaseHelper";
-import { Pressable } from "react-native";
+import { AppState, Pressable } from "react-native";
+import LockScreen from "./screens/lockScreen";
+import { useState, useRef, useEffect } from "react";
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +35,43 @@ export default function App() {
     });
     return unsubscribe;
   }, [auth, auth?.currentUser?.emailVerified]);
+
+  const [isInactive, setIsInactive] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
+  const timerRef = useRef(null);
+
+  const resetTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => {
+      setIsInactive(true);
+      console.log("Inactive Triggered: ");
+    }, 5000); // 60 seconds
+  };
+
+  const handleUserActivity = () => {
+    setIsInactive(false); // Reset inactivity
+    resetTimer(); // Restart the timer
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active" && appState !== "active") {
+        resetTimer(); // Restart the timer when app becomes active
+      }
+      setAppState(nextAppState);
+    });
+
+    // Initialize the timer
+    resetTimer();
+
+    return () => {
+      subscription.remove();
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [appState]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -76,6 +115,7 @@ export default function App() {
                 },
               })}
             >
+              <Stack.Screen name="Lock" component={LockScreen} />
               {loggedIn ? (
                 <Stack.Screen name="Home" component={HomeScreen} />
               ) : (
