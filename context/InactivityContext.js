@@ -27,7 +27,9 @@ export const InactivityProvider = ({ children, navigationRef }) => {
   };
 
   return (
-    <InactivityContext.Provider value={{ resetTimer, handleUnlock }}>
+    <InactivityContext.Provider
+      value={{ resetTimer, handleUnlock, setPreviousRoute }}
+    >
       {children}
     </InactivityContext.Provider>
   );

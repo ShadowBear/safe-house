@@ -18,6 +18,7 @@ import { AppState, Pressable } from "react-native";
 import LockScreen from "./screens/lockScreen";
 import { useState, useRef, useEffect } from "react";
 import { InactivityProvider } from "./context/InactivityContext";
+import AppStateHandler from "./utils/appStateHandler";
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ export default function App() {
       <PaperProvider>
         <AuthProvider>
           <InactivityProvider navigationRef={navigation}>
+            <AppStateHandler navigationRef={navigation} />
             <NavigationContainer ref={navigation}>
               <Stack.Navigator
                 screenOptions={({ route, navigation }) => ({
