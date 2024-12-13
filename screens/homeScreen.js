@@ -28,6 +28,7 @@ import {
 } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { InactivityContext } from "../context/InactivityContext";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +36,7 @@ export default function HomeScreen({ navigation }) {
   const [accountPwData, setAccountPwData] = useState([]);
   const [filteredData, setFilteredPwData] = useState(accountPwData);
   const [filter, setFilter] = useState("");
+  const { resetTimer } = useContext(InactivityContext);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,6 +44,7 @@ export default function HomeScreen({ navigation }) {
         let data = await getAllPwData();
         setAccountPwData(data);
         setIsLoading(false);
+        resetTimer();
       }
       fetchDataAsync();
     }, [])
@@ -102,7 +105,7 @@ export default function HomeScreen({ navigation }) {
       start={{ x: 0, y: 0.7 }}
       end={{ x: 0, y: 0 }}
     >
-      <View style={styles.container}>
+      <View style={styles.container} onTouchStart={resetTimer}>
         <View style={styles.listContainer}>
           <Animated.FlatList
             keyboardDismissMode="on-drag"

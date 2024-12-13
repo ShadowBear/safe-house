@@ -30,6 +30,7 @@ import NewPwCardDetails from "../components/new-detailed-pw-card";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import { encryptData } from "../utils/crypoHelper";
+import { InactivityContext } from "../context/InactivityContext";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
@@ -41,6 +42,11 @@ export default function PwDetailsScreen({ navigation, route }) {
   const [focus, setFocus] = useState(false);
 
   const authCtx = useContext(AuthContext);
+  const { resetTimer } = useContext(InactivityContext);
+
+  useEffect(() => {
+    resetTimer();
+  }, []);
 
   useEffect(() => {
     if (route?.params?.accounts) {
@@ -147,7 +153,7 @@ export default function PwDetailsScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} onTouchStart={resetTimer}>
       <LinearGradient
         style={StyleSheet.absoluteFillObject}
         colors={[Colors.white, Colors.primary]}
@@ -198,31 +204,32 @@ export default function PwDetailsScreen({ navigation, route }) {
               color={Colors.white}
             />
           </View>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={modalClose}
+          >
+            <TouchableOpacity
+              style={styles.modalContainer}
+              onPress={modalClose}
+              activeOpacity={1}
+            >
+              <BlurView intensity={80} tint="light" style={styles.modal}>
+                <TouchableWithoutFeedback>
+                  <NewPwCardDetails
+                    onPressNew={addNewAccountHandler}
+                    resetInputs={resetInputs}
+                    focus={true}
+                    onCancel={modalClose}
+                  />
+                </TouchableWithoutFeedback>
+              </BlurView>
+            </TouchableOpacity>
+          </Modal>
         </KeyboardAvoidingView>
       </LinearGradient>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={modalClose}
-      >
-        <TouchableOpacity
-          style={styles.modalContainer}
-          onPress={modalClose}
-          activeOpacity={1}
-        >
-          <BlurView intensity={80} tint="light" style={styles.modal}>
-            <TouchableWithoutFeedback>
-              <NewPwCardDetails
-                onPressNew={addNewAccountHandler}
-                resetInputs={resetInputs}
-                focus={true}
-                onCancel={modalClose}
-              />
-            </TouchableWithoutFeedback>
-          </BlurView>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }

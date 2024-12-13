@@ -1,10 +1,18 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useState, useLayoutEffect } from "react";
+import {
+  BackHandler,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import React, { useState, useLayoutEffect, useContext, useEffect } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Colors } from "../utils/Colors";
 import Numberfield from "../components/lockComponents/numberfield";
 import LottieView from "lottie-react-native";
 import SimpleModal from "../components/simpleModal";
+import { InactivityContext } from "../context/InactivityContext";
 
 const LockScreen = ({ navigation }) => {
   const DOTNUMBER = 4;
@@ -20,6 +28,19 @@ const LockScreen = ({ navigation }) => {
   const [dotUI, setDotUI] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisibility, setModalVisibility] = useState(false);
+  const { handleUnlock } = useContext(InactivityContext);
+
+  //Prevent Backbutton handling
+  useEffect(() => {
+    const onBackPress = () => {
+      return true; // prevents the default back behavior
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+    return () => backHandler.remove();
+  }, []);
 
   useLayoutEffect(() => {
     let dots = isLoading ? (
@@ -90,7 +111,7 @@ const LockScreen = ({ navigation }) => {
         setEnteredLock([]);
         setDotSelectColor(Colors.primary);
         //Should be home as Lock only is visible when user is logged in
-        if (lockCode === "1234") navigation.navigate("Login");
+        if (lockCode === "1234") handleUnlock();
       }, 1500);
     }, 4000);
   };
