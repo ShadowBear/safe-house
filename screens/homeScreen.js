@@ -17,7 +17,7 @@ import { ActivityIndicator } from "react-native";
 import { FIREBASE_URL } from "@env";
 import { AuthContext } from "../context/AuthContext";
 import { getAllPwData, getPwDataWithId, logout } from "../utils/databaseHelper";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useRoute } from "@react-navigation/native";
 import { LinearTransition } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -36,15 +36,21 @@ export default function HomeScreen({ navigation }) {
   const [accountPwData, setAccountPwData] = useState([]);
   const [filteredData, setFilteredPwData] = useState(accountPwData);
   const [filter, setFilter] = useState("");
-  const { resetTimer } = useContext(InactivityContext);
+  const { resetTimer, setPreviousRoute, setClearTimeout } =
+    useContext(InactivityContext);
 
   useFocusEffect(
     useCallback(() => {
       async function fetchDataAsync() {
-        let data = await getAllPwData();
-        setAccountPwData(data);
-        setIsLoading(false);
-        resetTimer();
+        const passed = await checkSecuritySet();
+        if (!passed) {
+          navigation.navigate("Lock", { isSetLockState: true });
+        } else {
+          let data = await getAllPwData();
+          setAccountPwData(data);
+          setIsLoading(false);
+          resetTimer();
+        }
       }
       fetchDataAsync();
     }, [])
@@ -97,6 +103,18 @@ export default function HomeScreen({ navigation }) {
     const updatedPwData = accountPwData.filter((item) => item.id !== id);
     setAccountPwData(updatedPwData);
   }
+
+  const checkSecuritySet = async () => {
+    try {
+      const securityPin = await AsyncStorage.getItem(Security.SecurityPin);
+      if (securityPin === null) {
+        setPreviousRoute(null);
+        setClearTimeout();
+        return false;
+      }
+      return true;
+    } catch (error) {}
+  };
 
   return (
     <LinearGradient

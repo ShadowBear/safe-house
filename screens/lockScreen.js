@@ -1,4 +1,5 @@
 import {
+  Alert,
   BackHandler,
   Modal,
   Pressable,
@@ -13,8 +14,11 @@ import Numberfield from "../components/lockComponents/numberfield";
 import LottieView from "lottie-react-native";
 import SimpleModal from "../components/simpleModal";
 import { InactivityContext } from "../context/InactivityContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Security } from "../utils/securityStore";
+import { logout } from "../utils/databaseHelper";
 
-const LockScreen = ({ navigation }) => {
+const LockScreen = ({ navigation, route }) => {
   const DOTNUMBER = 4;
   const dotColor = Colors.primary200;
   const numberSize = 70;
@@ -29,6 +33,26 @@ const LockScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [modalVisibility, setModalVisibility] = useState(false);
   const { handleUnlock } = useContext(InactivityContext);
+  const [titleText, setTitleText] = useState("");
+  const [setRound, setSetRound] = useState(0);
+  const [newCode, setNewCode] = useState([]);
+  const [isSetLockState, setIsSetLockState] = useState(null);
+
+  useEffect(() => {
+    checkIsSetLockState();
+  }, [route?.params?.isSetLockState, setRound]);
+
+  const checkIsSetLockState = () => {
+    const lockState = route?.params?.isSetLockState;
+    let title = "";
+    if (lockState) {
+      title = setRound === 0 ? "Set a new Pin: " : "Confirm new Pin:";
+    } else {
+      title = "Enter your Login Pin: ";
+    }
+    setTitleText(title);
+    setIsSetLockState(lockState);
+  };
 
   //Prevent Backbutton handling
   useEffect(() => {
@@ -81,7 +105,7 @@ const LockScreen = ({ navigation }) => {
     );
   };
 
-  const handleNumberPress = (number) => {
+  const handleNumberPress = async (number) => {
     if (enteredLock.length >= DOTNUMBER) return;
     const newLockCode = [...enteredLock, number];
     setEnteredLock(newLockCode);
@@ -89,7 +113,37 @@ const LockScreen = ({ navigation }) => {
 
     //Check if all digits set and try login
     if (newLockCode.length === DOTNUMBER) {
-      checkLogin(newLockCode.join(""));
+      if (isSetLockState) {
+        if (setRound === 0) {
+          setSetRound(1);
+          setNewCode(newLockCode.join(""));
+          setEnteredLock([]);
+        }
+        if (setRound === 1) {
+          if (newCode === newLockCode.join("")) {
+            try {
+              await AsyncStorage.setItem(Security.SecurityPin, newCode);
+            } catch (error) {
+              Alert.error(error);
+            }
+            Alert.alert("Pin Confirmed", "Your PIN has been set successfully", [
+              { text: "OK", onPress: () => navigation.replace("Home") },
+            ]);
+            setSetRound(0);
+            setIsSetLockState(false);
+          } else {
+            Alert.alert("Pins don´t match", "Please try again", [
+              { text: "OK", onPress: () => {} },
+            ]);
+            setSetRound(0);
+            setNewCode([]);
+            setEnteredLock([]);
+            setIsSetLockState(true);
+          }
+        }
+      } else {
+        checkLogin(newLockCode.join(""));
+      }
     }
   };
 
@@ -101,19 +155,19 @@ const LockScreen = ({ navigation }) => {
     }
   };
 
-  const checkLogin = (lockCode) => {
+  const checkLogin = async (lockCode) => {
     setIsLoading(true);
+    let success = await checkForLogin(lockCode);
     setTimeout(() => {
       setIsLoading(false);
-      setDotSelectColor(lockCode === "1234" ? Colors.success : Colors.error);
-
+      console.log(success);
+      setDotSelectColor(success ? Colors.success : Colors.error);
       setTimeout(() => {
         setEnteredLock([]);
         setDotSelectColor(Colors.primary);
-        //Should be home as Lock only is visible when user is logged in
-        if (lockCode === "1234") handleUnlock();
+        if (success) handleUnlock();
       }, 1500);
-    }, 4000);
+    }, 2000);
   };
 
   const renderColumn = (dataArray) => {
@@ -128,16 +182,43 @@ const LockScreen = ({ navigation }) => {
     ));
   };
 
-  const handlePinReset = () => {
-    setModalVisibility(false);
-    //TODO: Logout and set pin status to "NOT_SET"
-    //Navigate to Login Screen
+  const handlePinReset = async () => {
+    try {
+      await AsyncStorage.removeItem(Security.SecurityPin);
+      Alert.alert(
+        "Success:",
+        "Your login pin has been reset. You can set a new Pin while your next login!"
+      );
+      await logout();
+      navigation.replace("Home");
+    } catch (error) {
+      console.log(error);
+      Alert.alert(
+        "Error:",
+        "An unknown error occurred please try again or reset your login pin"
+      );
+    }
+  };
+
+  const checkForLogin = async (lockCode) => {
+    try {
+      const loginPin = await AsyncStorage.getItem(Security.SecurityPin);
+      console.log("Stored Login Pin ", loginPin);
+      console.log("Entered Pin: ", lockCode);
+      return lockCode === loginPin ? true : false;
+    } catch (error) {
+      console.log(error);
+      Alert.alert(
+        "Error:",
+        "An unknown error occurred please try again or reset your login pin"
+      );
+    }
   };
 
   return (
     <View style={[styles.screenContainer, styles.borderClass]}>
       <View style={[styles.title, styles.borderClass]}>
-        <Text style={styles.text}>Enter Login Pin:</Text>
+        <Text style={styles.text}>{titleText}</Text>
       </View>
       <View style={[styles.innerContentContainer, styles.borderClass]}>
         <View style={[styles.lockDots, styles.borderClass]}>{dotUI}</View>
@@ -164,9 +245,11 @@ const LockScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={[styles.actionButtonContainer, styles.borderClass]}>
-        <Pressable onPress={() => setModalVisibility(true)}>
-          <Text style={styles.rememberTxt}>Can´t Remember your Pin?</Text>
-        </Pressable>
+        {!isSetLockState && (
+          <Pressable onPress={() => setModalVisibility(true)}>
+            <Text style={styles.rememberTxt}>Can´t Remember your Pin?</Text>
+          </Pressable>
+        )}
       </View>
       <Modal
         animationType="slide"

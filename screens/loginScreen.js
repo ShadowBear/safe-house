@@ -34,6 +34,7 @@ import { Security } from "../utils/securityStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import auth from "../utils/firebaseConfig";
 import { sendEmailVerification } from "firebase/auth";
+import { InactivityContext } from "../context/InactivityContext";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -53,10 +54,12 @@ export default function LoginScreen({ navigation }) {
   const reInputRef = useRef(null);
 
   const { setUser } = useContext(AuthContext);
+  const { setClearTimeout } = useContext(InactivityContext);
 
   useFocusEffect(
     useCallback(() => {
       clearFields();
+      setClearTimeout();
     }, [])
   );
 
