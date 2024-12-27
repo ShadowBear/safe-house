@@ -8,8 +8,9 @@ import {
   Modal,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardDetails from "../components/pw-card-detail";
 import { FlatList } from "react-native-gesture-handler";
@@ -21,10 +22,15 @@ import {
   getPwDataWithId,
   updatePwData,
 } from "../utils/databaseHelper";
-import { PwData, Credential } from "../sample/pwData";
+import { PwData, Credential } from "../model/pwData";
 import { LinearTransition } from "react-native-reanimated";
 import { FAB } from "react-native-paper";
 import { BlurView } from "expo-blur";
+import NewPwCardDetails from "../components/new-detailed-pw-card";
+import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
+import { encryptData } from "../utils/crypoHelper";
+import { InactivityContext } from "../context/InactivityContext";
 
 export default function PwDetailsScreen({ navigation, route }) {
   const [accountList, setAccountList] = useState([]);
@@ -33,6 +39,14 @@ export default function PwDetailsScreen({ navigation, route }) {
   const [pwDataCollectionId, setPwDataCollectionId] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [resetInputs, setResetInputs] = useState(false);
+  const [focus, setFocus] = useState(false);
+
+  const authCtx = useContext(AuthContext);
+  const { resetTimer } = useContext(InactivityContext);
+
+  useEffect(() => {
+    resetTimer();
+  }, []);
 
   useEffect(() => {
     if (route?.params?.accounts) {
@@ -60,19 +74,20 @@ export default function PwDetailsScreen({ navigation, route }) {
     setResetInputs(true);
     Keyboard.dismiss();
     setResetInputs(false);
+    setFocus(false);
   };
 
   async function addNewAccountHandler({ newAccount }) {
     //Check for correct account entry
-    if (!newAccount?.userName || !newAccount?.password) return false;
+    if (!newAccount?.userName || !newAccount?.password || !authCtx?.key)
+      return false;
 
     //Create new credential element
     try {
       const pwDataId = pwDataCollectionId;
-      let newCredentialsElement = new Credential(
-        newAccount.userName,
-        newAccount.password
-      );
+      const key = authCtx.key;
+      const pw = await encryptData(newAccount.password, key);
+      let newCredentialsElement = new Credential(newAccount.userName, pw);
       const dataRef = await getPwDataWithId(pwDataId);
       dataRef.pwData.push(newCredentialsElement);
       const result = await updatePwData(pwDataId, dataRef);
@@ -89,18 +104,20 @@ export default function PwDetailsScreen({ navigation, route }) {
   }
 
   //Todo: Adjust Update to handle nested credentials
-
   async function updatePwDataHandler({ updatedPwData }) {
     try {
       const pwDataId = pwDataCollectionId;
       //Get original object
       const dataRef = await getPwDataWithId(pwDataId);
 
+      const key = authCtx.key;
+      const pw = await encryptData(updatedPwData.password, key);
+
       //Create new credential
       dataRef.pwData.forEach((element) => {
         if (element.id === updatedPwData.id) {
           element.userName = updatedPwData.userName;
-          element.password = updatedPwData.password;
+          element.password = pw;
         }
       });
 
@@ -136,68 +153,83 @@ export default function PwDetailsScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.listContainer}>
-        <Animated.FlatList
-          data={accountList}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PwCardDetails
-              user={item.userName}
-              password={item.password}
-              isNewCardMode={false}
-              onPressSave={updatePwDataHandler}
-              onPressDelete={deletePwDataHandler}
-              id={item.id}
-            />
-          )}
-          style={styles.list}
-          contentContainerStyle={{ gap: 10 }}
-          ListFooterComponent={
-            isLoading ? (
-              <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <ActivityIndicator size="large" color={Colors.info} />
-                <Text>Loading...</Text>
-              </View>
-            ) : null
-          }
-          itemLayoutAnimation={LinearTransition}
-        />
-        <FAB
-          icon="plus"
-          style={styles.fab}
-          onPress={() => {
-            setModalVisible(true);
-          }}
-        />
-      </View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={modalClose}
+    <View style={styles.container} onTouchStart={resetTimer}>
+      <LinearGradient
+        style={StyleSheet.absoluteFillObject}
+        colors={[Colors.white, Colors.primary]}
+        start={{ x: 0, y: 0.7 }}
+        end={{ x: 0, y: 0 }}
       >
-        <TouchableOpacity
-          style={styles.container}
-          onPress={modalClose}
-          activeOpacity={1}
+        <KeyboardAvoidingView
+          style={StyleSheet.absoluteFillObject}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
-          <BlurView intensity={60} tint="light" style={styles.modal}>
-            <TouchableWithoutFeedback>
-              <PwCardDetails
-                user=""
-                password=""
-                isNewCardMode={true}
-                onPressNew={addNewAccountHandler}
-                resetInputs={resetInputs}
-              />
-            </TouchableWithoutFeedback>
-          </BlurView>
-        </TouchableOpacity>
-      </Modal>
-      {/* <View style={styles.newCardContainer}>
-        
-      </View> */}
+          <View style={StyleSheet.absoluteFillObject}>
+            <Animated.FlatList
+              removeClippedSubviews={false}
+              windowSize={3}
+              data={accountList}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <PwCardDetails
+                  user={item.userName}
+                  password={item.password}
+                  isNewCardMode={false}
+                  onPressSave={updatePwDataHandler}
+                  onPressDelete={deletePwDataHandler}
+                  id={item.id}
+                />
+              )}
+              style={styles.list}
+              contentContainerStyle={{ gap: 10 }}
+              ListFooterComponent={
+                isLoading ? (
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <ActivityIndicator size="large" color={Colors.secondary} />
+                    <Text>Loading...</Text>
+                  </View>
+                ) : null
+              }
+              itemLayoutAnimation={LinearTransition}
+            />
+            <FAB
+              icon="plus"
+              style={styles.fab}
+              onPress={() => {
+                setModalVisible(true);
+                setFocus(true);
+              }}
+              color={Colors.white}
+            />
+          </View>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={modalClose}
+          >
+            <TouchableOpacity
+              style={styles.modalContainer}
+              onPress={modalClose}
+              activeOpacity={1}
+            >
+              <BlurView intensity={80} tint="light" style={styles.modal}>
+                <TouchableWithoutFeedback>
+                  <NewPwCardDetails
+                    onPressNew={addNewAccountHandler}
+                    resetInputs={resetInputs}
+                    focus={true}
+                    onCancel={modalClose}
+                  />
+                </TouchableWithoutFeedback>
+              </BlurView>
+            </TouchableOpacity>
+          </Modal>
+        </KeyboardAvoidingView>
+      </LinearGradient>
     </View>
   );
 }
@@ -205,20 +237,17 @@ export default function PwDetailsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.background,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.white,
   },
 
-  listContainer: {
-    flex: 2,
-    width: "100%",
-    justifyContent: "flex-start",
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 5,
-    marginTop: 5,
-    paddingHorizontal: 10,
   },
+
   titleText: {
     height: 30,
     justifyContent: "center",
@@ -226,21 +255,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 5,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
 
   modal: {
     flex: 1,
     width: "100%",
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 10,
   },
 
   list: {
-    width: "100%",
+    paddingHorizontal: 5,
+    flex: 1,
   },
 
   fab: {
@@ -248,24 +274,6 @@ const styles = StyleSheet.create({
     bottom: 20,
     right: 20,
     margin: 10,
-  },
-
-  newCardContainer: {
-    flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-
-  newCard: {},
-
-  card: {},
-
-  loginBtn: {
-    marginTop: 10,
-    width: 100,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.secondary,
   },
 });

@@ -1,14 +1,17 @@
 import { Pressable, StyleSheet, Text, ToastAndroid, View } from "react-native";
-import React from "react";
+import React, { useContext } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { Colors } from "../utils/Colors";
 import QuardBtn from "./quardBtn";
 import { useNavigation } from "@react-navigation/native";
 import { deletePwData } from "../utils/databaseHelper";
 import * as Clipboard from "expo-clipboard";
+import { decrypt } from "../utils/crypoHelper";
+import { AuthContext } from "../context/AuthContext";
 
 export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
   const navigation = useNavigation();
+  const authCtx = useContext(AuthContext);
 
   function showDetailsHandler() {
     navigation.navigate("PwDetails", {
@@ -20,7 +23,12 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
 
   function clipboardHandler() {
     async function copyClipboard() {
-      await Clipboard.setStringAsync(data[0].password);
+      if (!authCtx?.key) {
+        ToastAndroid.show("No encryption key available", ToastAndroid.SHORT);
+        return;
+      }
+      const pw = await decrypt(data[0].password, authCtx.key);
+      await Clipboard.setStringAsync(pw);
       ToastAndroid.show(
         `Copied password for ${data[0].userName}`,
         ToastAndroid.SHORT
@@ -41,7 +49,7 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
             <MaterialCommunityIcons
               name={avatar}
               size={30}
-              color={Colors.primary}
+              color={Colors.secondary}
             />
           </View>
           <Text style={styles.text}>{title}</Text>
@@ -52,14 +60,15 @@ export default function PwCardMini({ id, avatar, title, data, deleteCard }) {
               const result = deletePwData(id);
               if (result) deleteCard(id);
             }}
-            color={Colors.info}
+            color={Colors.delete}
             style={styles.icon}
+            backgroundColor={Colors.white}
           />
           <QuardBtn
             name={"content-copy"}
             size={25}
             onPress={clipboardHandler}
-            color={Colors.info}
+            color={Colors.primary}
             style={styles.icon}
           />
         </View>
@@ -80,29 +89,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: 10,
     backgroundColor: Colors.white,
     borderRadius: 10,
     overflow: "hidden",
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: Colors.info,
+    borderColor: Colors.white,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 3,
   },
   avatar: {
     width: 50,
     height: 50,
-    borderColor: Colors.info,
-    backgroundColor: Colors.info2,
-    borderRadius: 50,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.lightGrey,
+    borderRadius: 12,
     borderWidth: 0,
     marginLeft: 5,
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 0,
   },
   icon: {
-    width: 60,
-    height: 60,
-    borderColor: Colors.info,
-    backgroundColor: Colors.lightGrey,
+    width: 55,
+    height: 55,
   },
   text: {
     fontSize: 18,

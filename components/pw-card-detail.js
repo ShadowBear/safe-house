@@ -6,16 +6,16 @@ import {
   View,
   Keyboard,
 } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Button, TextInput } from "react-native-paper";
 import { Colors } from "../utils/Colors";
 import { showPasswordHandler } from "../utils/pwHelper";
+import { AuthContext } from "../context/AuthContext";
+import { decrypt } from "../utils/crypoHelper";
 
 export default function PwCardDetails({
   user,
   password,
-  isNewCardMode,
-  onPressNew,
   onPressSave,
   onPressDelete,
   id,
@@ -29,10 +29,10 @@ export default function PwCardDetails({
   const [isEditMode, setEditMode] = useState(false);
   const [prevUserName, setPrevUserName] = useState("");
   const [prevPw, setPrevPw] = useState("");
+  const authCtx = useContext(AuthContext);
 
   let actionButton = null;
   let editButton = null;
-  let newPwText = null;
 
   useEffect(() => {
     if (resetInputs) {
@@ -41,39 +41,28 @@ export default function PwCardDetails({
     }
   }, [resetInputs]);
 
-  // New Card Mode:
-  if (isNewCardMode) {
-    newPwText = <Text style={styles.newLabel}>New Password</Text>;
-    actionButton = (
-      <Button
-        icon="key-plus"
-        mode="outlined"
-        onPress={() => {
-          onPressNew({ newAccount: { userName: userName, password: pw } });
-          setPW("");
-          setUserName("");
-          Keyboard.dismiss();
-        }}
-        contentStyle={styles.button}
-      >
-        Add
-      </Button>
-    );
-    editButton = <View></View>;
-  }
-  // Edit Mode Card Buttons:
-  else if (isEditMode) {
+  useEffect(() => {
+    async function showDecrypt() {
+      if (!authCtx.key) return;
+      const decryptedPw = await decrypt(password, authCtx.key);
+      setPW(decryptedPw);
+    }
+    showDecrypt();
+  }, [password]);
+
+  if (isEditMode) {
     actionButton = (
       <Button
         icon="cancel"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           // Reset Inputs and switch to none Edit Mode
           setUserName(prevUserName);
           setPW(prevPw);
           setEditMode(false);
         }}
-        contentStyle={styles.button}
+        contentStyle={styles.secondaryButton}
+        textColor={Colors.white}
       >
         Cancel
       </Button>
@@ -81,7 +70,7 @@ export default function PwCardDetails({
     editButton = (
       <Button
         icon="content-save-outline"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           setEditMode(false);
           // Todo: Save and update current Credentials change
@@ -90,6 +79,7 @@ export default function PwCardDetails({
           });
         }}
         contentStyle={styles.button}
+        textColor={Colors.white}
       >
         Save
       </Button>
@@ -100,11 +90,12 @@ export default function PwCardDetails({
     actionButton = (
       <Button
         icon="delete-outline"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           onPressDelete({ id: id });
         }}
-        contentStyle={styles.button}
+        contentStyle={styles.secondaryButton}
+        textColor={Colors.white}
       >
         Delete
       </Button>
@@ -112,11 +103,12 @@ export default function PwCardDetails({
     editButton = (
       <Button
         icon="note-edit-outline"
-        mode="outlined"
+        mode="elevated"
         onPress={() => {
           editModeHandler();
         }}
         contentStyle={styles.button}
+        textColor={Colors.white}
       >
         Edit
       </Button>
@@ -132,29 +124,30 @@ export default function PwCardDetails({
   }
 
   return (
-    <View style={isNewCardMode ? styles.newContainer : styles.container}>
+    <View style={styles.container}>
       <View style={styles.inputContainer}>
-        {newPwText}
         <TextInput
-          activeOutlineColor={Colors.info}
+          activeOutlineColor={Colors.secondary}
+          outlineColor={Colors.primary}
           mode="outlined"
           label="User"
           placeholder="User"
           onChangeText={(text) => {
-            if (isEditMode || isNewCardMode) setUserName(text);
+            if (isEditMode) setUserName(text);
           }}
           value={userName}
           style={styles.inputAcc}
         />
         <TextInput
           ref={pwRef}
-          activeOutlineColor={Colors.info}
+          activeOutlineColor={Colors.secondary}
+          outlineColor={Colors.primary}
           mode="outlined"
           label="Password"
           placeholder="Password"
           // onChangeText={setPW}
           onChangeText={(text) => {
-            if (isEditMode || isNewCardMode) setPW(text);
+            if (isEditMode) setPW(text);
           }}
           value={pw}
           style={styles.inputPw}
@@ -185,27 +178,18 @@ export default function PwCardDetails({
 const styles = StyleSheet.create({
   container: {
     height: 180,
-    width: "100%",
+    width: "auto",
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: Colors.info,
-    backgroundColor: Colors.info2,
+    borderColor: Colors.white,
+    backgroundColor: Colors.white,
     borderRadius: 8,
-  },
-  newContainer: {
-    height: 210,
-    width: "100%",
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: Colors.error,
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-  },
-  newLabel: {
-    fontSize: 15,
-    fontWeight: "bold",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 3,
+    margin: 5,
   },
   inputContainer: {
     flex: 1,
@@ -223,6 +207,11 @@ const styles = StyleSheet.create({
   },
   button: {
     flexDirection: "row-reverse",
+    backgroundColor: Colors.secondary,
+  },
+  secondaryButton: {
+    flexDirection: "row-reverse",
+    backgroundColor: Colors.primary,
   },
   inputAcc: {
     alignSelf: "stretch",

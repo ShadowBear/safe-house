@@ -1,4 +1,11 @@
-import { KeyboardAvoidingView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  View,
+} from "react-native";
 import React, {
   isValidElement,
   useCallback,
@@ -19,9 +26,15 @@ import {
   Button,
   HelperText,
 } from "react-native-paper";
-import { Link, useFocusEffect } from "@react-navigation/native";
+import { Link, useFocusEffect, useNavigation } from "@react-navigation/native";
 import { login, logout, register } from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
+import { generateKey, PW_KEY } from "../utils/crypoHelper";
+import { Security } from "../utils/securityStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import auth from "../utils/firebaseConfig";
+import { sendEmailVerification } from "firebase/auth";
+import { InactivityContext } from "../context/InactivityContext";
 
 export default function LoginScreen({ navigation }) {
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
@@ -41,10 +54,12 @@ export default function LoginScreen({ navigation }) {
   const reInputRef = useRef(null);
 
   const { setUser } = useContext(AuthContext);
+  const { setClearTimeout } = useContext(InactivityContext);
 
   useFocusEffect(
     useCallback(() => {
       clearFields();
+      setClearTimeout();
     }, [])
   );
 
@@ -54,7 +69,8 @@ export default function LoginScreen({ navigation }) {
     let user = userName;
 
     if (pw.length === 0 && userName.length === 0) {
-      user = "ben1@mail.com";
+      // user = "ben1@mail.com";
+      user = "boyo@byom.de";
       userPW = "Test123!";
     } else {
       let valid = checkValidate();
@@ -63,20 +79,25 @@ export default function LoginScreen({ navigation }) {
         return;
       }
     }
-
-    let success = false;
-
-    if (segmentValue === "Login") {
-      success = await login(user, userPW);
-    } else if (segmentValue === "Register" && pw === rePw) {
-      success = await register(userName, pw);
-    }
-    if (success) {
-      setUser({ userName: user, password: userPW });
-      navigation.navigate("Home", { userName: user });
-    } else {
-      setErrorMessage("Failed to login check User Name and Password");
-      setValidLogin(false);
+    try {
+      const jsonUser = JSON.stringify({ user: user, password: userPW });
+      await AsyncStorage.setItem(Security.PW_KEY_User, jsonUser);
+      if (segmentValue === "Login") {
+        await login(user, userPW);
+        if (!auth?.currentUser?.emailVerified) {
+          //Todo give better user feedback with modal?
+          Alert.alert(
+            "Email not verified",
+            "Please verify your email to continue",
+            [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+          );
+          return;
+        }
+      } else if (segmentValue === "Register" && pw === rePw) {
+        await register(userName, pw);
+      }
+    } catch (error) {
+      console.error("Login or Register failed", error);
     }
   }, [segmentValue, userName, pw, rePw, navigation]);
 
@@ -96,9 +117,24 @@ export default function LoginScreen({ navigation }) {
   }, [pw, rePw]);
 
   const checkValidate = () => {
-    let valid = userName.length > 5 && pw.length > 5 && userName.includes("@");
+    const pwRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&@$!%*?&}<>{=()[\]])[A-Za-z\d@$!%*?&}<>{=()[\]]+$/;
+    let pwValidate = pwRegex.test(pw);
+    let valid =
+      userName.length > 5 &&
+      pw.length > 7 &&
+      userName.includes("@") &&
+      pwValidate;
+
+    if (!pwValidate) {
+      setErrorMessage(
+        "Missing Password complexity press info for more details:"
+      );
+    } else if (!valid) {
+      setErrorMessage("Password or Email is not valid!");
+    }
+
     setValidLogin(valid);
-    if (!valid) setErrorMessage("Password or Email is not valid!");
     return valid;
   };
 
@@ -118,7 +154,7 @@ export default function LoginScreen({ navigation }) {
           <Checkbox
             status={checked ? "checked" : "unchecked"}
             onPress={() => setChecked((prev) => !prev)}
-            color={Colors.info}
+            color={Colors.secondary}
           />
           <Text>Remember Me</Text>
         </View>
@@ -151,7 +187,7 @@ export default function LoginScreen({ navigation }) {
                 }
               />
             }
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
           <HelperText type="error" visible={!matching}>
             Passwords don´t match
@@ -187,7 +223,7 @@ export default function LoginScreen({ navigation }) {
                 clearFields();
               },
               checkedColor: Colors.white,
-              uncheckedColor: Colors.info,
+              uncheckedColor: Colors.secondary,
               style:
                 segmentValue === "Login"
                   ? styles.segmentButtonSelected
@@ -199,14 +235,14 @@ export default function LoginScreen({ navigation }) {
               onPress: () => {
                 clearFields();
               },
-              checkedColor: Colors.info,
+              checkedColor: Colors.secondary,
               style: [
                 segmentValue === "Register"
                   ? styles.segmentButtonSelected
                   : styles.segmentButton,
               ],
               checkedColor: Colors.white,
-              uncheckedColor: Colors.info,
+              uncheckedColor: Colors.secondary,
             },
           ]}
         />
@@ -226,7 +262,7 @@ export default function LoginScreen({ navigation }) {
             mode="outlined"
             value={userName}
             onChangeText={setUserName}
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
           <TextInput
             ref={inputRef}
@@ -250,11 +286,28 @@ export default function LoginScreen({ navigation }) {
                 }
               />
             }
-            activeOutlineColor={Colors.info}
+            activeOutlineColor={Colors.secondary}
           />
-          <HelperText type="error" visible={!validLogin}>
-            {errorMessage}
-          </HelperText>
+          <View>
+            {validLogin ? null : (
+              <View style={styles.errorContainer}>
+                <HelperText type="error">{errorMessage}</HelperText>
+                <MaterialCommunityIcons
+                  name="information-outline"
+                  color={Colors.error}
+                  size={25}
+                  style={{ paddingRight: 5, paddingTop: 1 }}
+                  onPress={() =>
+                    Alert.alert(
+                      "Higher Security Required:",
+                      " Password must contain at least: \n 1 uppercase letters\n 1 lowercase letters\n 1 special character\n 1 digit",
+                      [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+                    )
+                  }
+                />
+              </View>
+            )}
+          </View>
         </View>
         <View style={styles.checkboxContainer}>{loginOrRegisterInputs}</View>
         <View style={styles.btnContainer}>
@@ -297,6 +350,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     height: 150,
   },
+  errorContainer: {
+    flexDirection: "row",
+  },
   welcomeText: {
     fontSize: 18,
     fontWeight: "bold",
@@ -325,11 +381,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   segmentButtonSelected: {
-    backgroundColor: Colors.info,
+    backgroundColor: Colors.primary,
   },
 
   loginBtn: {
-    backgroundColor: Colors.info,
+    backgroundColor: Colors.primary,
     flexDirection: "row-reverse",
   },
   btnContainer: {

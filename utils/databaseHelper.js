@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
 } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/firestore";
@@ -18,6 +19,7 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore";
+import { ToastAndroid } from "react-native";
 
 const FIRESTORE_USERS = "users";
 const FIRESTORE_PW_COLLECTION = "pwDataCollection";
@@ -61,6 +63,7 @@ export async function login(userName, password) {
 export async function register(userName, password) {
   try {
     await createUserWithEmailAndPassword(auth, userName, password);
+    await sendEmailVerification(auth.currentUser);
     return true;
   } catch (error) {
     console.log("Error: " + error.message);
