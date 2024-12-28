@@ -1,4 +1,4 @@
-import { createContext, useState, useRef } from "react";
+import { createContext, useState, useRef, useMemo } from "react";
 
 const INACTIVITYTIMEOUT = 60000;
 
@@ -11,7 +11,7 @@ export const InactivityProvider = ({ children, navigationRef }) => {
   const [previousRoute, setPreviousRoute] = useState(null);
   const timeRef = useRef(null);
 
-  const resetTimer = () => {
+  const resetTimer = useMemo(() => {
     if (timeRef.current) {
       clearTimeout(timeRef.current);
     }
@@ -20,22 +20,22 @@ export const InactivityProvider = ({ children, navigationRef }) => {
       setPreviousRoute(currentRoute?.name);
       navigationRef?.current?.navigate("Lock");
     }, INACTIVITYTIMEOUT);
-  };
+  }, [timeRef?.current, navigationRef?.current]);
 
-  const handleUnlock = () => {
+  const handleUnlock = useMemo(() => {
     if (previousRoute) {
-      navigationRef.current.navigate(previousRoute);
+      navigationRef?.current?.navigate(previousRoute);
     } else {
-      navigationRef.current.navigate("Home");
+      navigationRef?.current?.navigate("Home");
     }
-  };
+  }, [navigationRef?.current, previousRoute]);
 
-  const setClearTimeout = () => {
+  const setClearTimeout = useMemo(() => {
     if (timeRef.current) {
       clearTimeout(timeRef.current);
     }
     timeRef.current = null;
-  };
+  }, [timeRef?.current]);
 
   return (
     <InactivityContext.Provider

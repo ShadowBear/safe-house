@@ -19,7 +19,6 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { ToastAndroid } from "react-native";
 
 const FIRESTORE_USERS = "users";
 const FIRESTORE_PW_COLLECTION = "pwDataCollection";

@@ -1,10 +1,14 @@
-import { StyleSheet, Text, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+} from "react-native";
 import React from "react";
 import { Button } from "react-native-paper";
 import { Colors } from "../utils/Colors";
 import { BlurView } from "expo-blur";
-import { TouchableOpacity } from "react-native";
-import { TouchableWithoutFeedback } from "react-native";
 
 export default function SimpleModal({ title, body, onOk, onCancel }) {
   return (

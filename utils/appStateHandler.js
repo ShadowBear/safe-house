@@ -10,7 +10,8 @@ const AppStateHandler = ({ navigationRef }) => {
     const handleNextState = (nextState) => {
       if (nextState === "background") {
         const previousRoute = navigationRef?.current?.getCurrentRoute();
-        setPreviousRoute(previousRoute?.name);
+        if (previousRoute?.name !== "Lock")
+          setPreviousRoute(previousRoute?.name);
         navigationRef?.current?.navigate("Lock");
       }
     };

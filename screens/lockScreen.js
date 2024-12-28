@@ -85,22 +85,24 @@ const LockScreen = ({ navigation, route }) => {
       <>
         {enteredLock.map((code, index) => (
           <MaterialCommunityIcons
-            key={index}
+            key={`${code}-${index}`}
             name="circle"
             color={dotSelectColor}
             size={30}
             style={styles.dot}
           />
         ))}
-        {Array.from({ length: DOTNUMBER - enteredLock.length }).map((_, i) => (
-          <MaterialCommunityIcons
-            key={i}
-            name="circle"
-            color={dotColor}
-            size={30}
-            style={styles.dot}
-          />
-        ))}
+        {Array.from({ length: DOTNUMBER - enteredLock.length }).map(
+          (code, i) => (
+            <MaterialCommunityIcons
+              key={`${code}-${i}`}
+              name="circle"
+              color={dotColor}
+              size={30}
+              style={styles.dot}
+            />
+          )
+        )}
       </>
     );
   };
@@ -112,38 +114,42 @@ const LockScreen = ({ navigation, route }) => {
     console.log(newLockCode);
 
     //Check if all digits set and try login
-    if (newLockCode.length === DOTNUMBER) {
-      if (isSetLockState) {
-        if (setRound === 0) {
-          setSetRound(1);
-          setNewCode(newLockCode.join(""));
-          setEnteredLock([]);
-        }
-        if (setRound === 1) {
-          if (newCode === newLockCode.join("")) {
-            try {
-              await AsyncStorage.setItem(Security.SecurityPin, newCode);
-            } catch (error) {
-              Alert.error(error);
-            }
-            Alert.alert("Pin Confirmed", "Your PIN has been set successfully", [
-              { text: "OK", onPress: () => navigation.replace("Home") },
-            ]);
-            setSetRound(0);
-            setIsSetLockState(false);
-          } else {
-            Alert.alert("Pins don´t match", "Please try again", [
-              { text: "OK", onPress: () => {} },
-            ]);
-            setSetRound(0);
-            setNewCode([]);
-            setEnteredLock([]);
-            setIsSetLockState(true);
+    if (newLockCode.length !== DOTNUMBER) return;
+
+    if (!isSetLockState) {
+      checkLogin(newLockCode.join(""));
+      return;
+    }
+
+    switch (setRound) {
+      case 0:
+        setSetRound(1);
+        setNewCode(newLockCode.join(""));
+        setEnteredLock([]);
+        break;
+      case 1:
+        if (newCode === newLockCode.join("")) {
+          try {
+            await AsyncStorage.setItem(Security.SecurityPin, newCode);
+          } catch (error) {
+            Alert.error(error);
           }
+          Alert.alert("Pin Confirmed", "Your PIN has been set successfully", [
+            { text: "OK", onPress: () => navigation.replace("Home") },
+          ]);
+          setIsSetLockState(false);
+        } else {
+          Alert.alert("Pins don´t match", "Please try again", [
+            { text: "OK", onPress: () => {} },
+          ]);
+          setNewCode([]);
+          setEnteredLock([]);
+          setIsSetLockState(true);
         }
-      } else {
-        checkLogin(newLockCode.join(""));
-      }
+        setSetRound(0);
+        break;
+      default:
+        break;
     }
   };
 
