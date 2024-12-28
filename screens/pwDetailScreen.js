@@ -9,14 +9,12 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Platform,
+  ActivityIndicator,
+  KeyboardAvoidingView,
 } from "react-native";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Colors } from "../utils/Colors";
 import PwCardDetails from "../components/pw-card-detail";
-import { FlatList } from "react-native-gesture-handler";
-import { useState } from "react";
-import { ActivityIndicator } from "react-native";
-import { KeyboardAvoidingView } from "react-native";
 import {
   deletePwData,
   getPwDataWithId,
@@ -39,7 +37,6 @@ export default function PwDetailsScreen({ navigation, route }) {
   const [pwDataCollectionId, setPwDataCollectionId] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [resetInputs, setResetInputs] = useState(false);
-  const [focus, setFocus] = useState(false);
 
   const authCtx = useContext(AuthContext);
   const { resetTimer } = useContext(InactivityContext);

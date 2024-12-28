@@ -53,7 +53,6 @@ export default function LoginScreen({ navigation }) {
   const inputRef = useRef(null);
   const reInputRef = useRef(null);
 
-  const { setUser } = useContext(AuthContext);
   const { setClearTimeout } = useContext(InactivityContext);
 
   useFocusEffect(
@@ -69,7 +68,6 @@ export default function LoginScreen({ navigation }) {
     let user = userName;
 
     if (pw.length === 0 && userName.length === 0) {
-      // user = "ben1@mail.com";
       user = "boyo@byom.de";
       userPW = "Test123!";
     } else {
@@ -118,7 +116,7 @@ export default function LoginScreen({ navigation }) {
 
   const checkValidate = () => {
     const pwRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&@$!%*?&}<>{=()[\]])[A-Za-z\d@$!%*?&}<>{=()[\]]+$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&}<>{=()[\]])[A-Za-z\d@$!%*?&}<>{=()[\]]+$/;
     let pwValidate = pwRegex.test(pw);
     let valid =
       userName.length > 5 &&

@@ -24,7 +24,6 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [loggedIn, setLoggedIn] = React.useState(false);
-  const authCtx = React.useContext(AuthContext);
   const navigation = useRef(null);
 
   React.useEffect(() => {

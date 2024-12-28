@@ -1,20 +1,21 @@
 import {
   Animated,
-  KeyboardAvoidingView,
   StyleSheet,
   Text,
   View,
+  ActivityIndicator,
 } from "react-native";
-import React, { useCallback, useContext, useLayoutEffect } from "react";
-import { useState, useEffect } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useState,
+  useEffect,
+} from "react";
 import { Colors } from "../utils/Colors";
 import PwCardMini from "../components/pw-card-mini";
-import { FlatList } from "react-native-gesture-handler";
-import { Button } from "react-native-paper";
 import { DATA, NewData } from "../sample/data";
 import NewPwCard from "../components/new-pw-card";
-import { ActivityIndicator } from "react-native";
-import { FIREBASE_URL } from "@env";
 import { AuthContext } from "../context/AuthContext";
 import { getAllPwData, getPwDataWithId, logout } from "../utils/databaseHelper";
 import { useFocusEffect, useRoute } from "@react-navigation/native";

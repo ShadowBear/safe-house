@@ -3,9 +3,7 @@ import React from "react";
 import { Colors } from "../utils/Colors";
 
 export default function UserDetailsScreen({ navigation }) {
-  function LoginHandler() {
-    //navigation.navigate("Login", { userName: "Ben", password: "Hallo123!" });
-  }
+  function LoginHandler() {}
 
   return (
     <View style={styles.container}>

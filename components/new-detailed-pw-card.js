@@ -18,7 +18,7 @@ export default function NewPwCardDetails({
   onCancel,
 }) {
   const [userName, setUserName] = useState("");
-  const [pwIsVisible, setPasswordIsVisible] = useState(true);
+  const [pwIsVisible, setPwIsVisible] = useState(true);
   const [eyeIcon, setEyeIcon] = useState("eye");
   const [pw, setPW] = useState("");
   const pwRef = useRef(null);
@@ -69,7 +69,7 @@ export default function NewPwCardDetails({
               onPress={() =>
                 showPasswordHandler({
                   pwIsVisible: pwIsVisible,
-                  setPassword: setPasswordIsVisible,
+                  setPassword: setPwIsVisible,
                   setIcon: setEyeIcon,
                   ref: pwRef,
                 })

@@ -29,11 +29,11 @@ export class User {
 }
 
 export class PwData {
-  constructor(avatar, title, pwData = [], id) {
+  constructor(avatar, title, pwData = [], id = uuidv4()) {
     this.avatar = avatar;
     this.title = title;
     this.pwData = pwData;
-    this.id = id ? id : uuidv4();
+    this.id = id;
   }
 
   addCredentials(userName, password, key) {
