@@ -12,29 +12,35 @@ export const InactivityProvider = ({ children, navigationRef }) => {
   const timeRef = useRef(null);
 
   const resetTimer = useMemo(() => {
-    if (timeRef.current) {
-      clearTimeout(timeRef.current);
-    }
-    timeRef.current = setTimeout(() => {
-      const currentRoute = navigationRef?.current?.getCurrentRoute();
-      setPreviousRoute(currentRoute?.name);
-      navigationRef?.current?.navigate("Lock");
-    }, INACTIVITYTIMEOUT);
+    return () => {
+      if (timeRef.current) {
+        clearTimeout(timeRef.current);
+      }
+      timeRef.current = setTimeout(() => {
+        const currentRoute = navigationRef?.current?.getCurrentRoute();
+        setPreviousRoute(currentRoute?.name);
+        navigationRef?.current?.navigate("Lock");
+      }, INACTIVITYTIMEOUT);
+    };
   }, [timeRef?.current, navigationRef?.current]);
 
   const handleUnlock = useMemo(() => {
-    if (previousRoute) {
-      navigationRef?.current?.navigate(previousRoute);
-    } else {
-      navigationRef?.current?.navigate("Home");
-    }
+    return () => {
+      if (previousRoute) {
+        navigationRef?.current?.navigate(previousRoute);
+      } else {
+        navigationRef?.current?.navigate("Home");
+      }
+    };
   }, [navigationRef?.current, previousRoute]);
 
   const setClearTimeout = useMemo(() => {
-    if (timeRef.current) {
-      clearTimeout(timeRef.current);
-    }
-    timeRef.current = null;
+    return () => {
+      if (timeRef?.current) {
+        clearTimeout(timeRef.current);
+      }
+      timeRef.current = null;
+    };
   }, [timeRef?.current]);
 
   return (

@@ -19,6 +19,7 @@ import LockScreen from "./screens/lockScreen";
 import { useState, useRef, useEffect } from "react";
 import { InactivityProvider } from "./context/InactivityContext";
 import AppStateHandler from "./utils/appStateHandler";
+import HeaderSignout from "./components/headerSignout";
 
 const Stack = createNativeStackNavigator();
 
@@ -51,34 +52,7 @@ export default function App() {
                   headerStyle: { backgroundColor: Colors.primary },
                   headerTitle: () => <CustomHeader />,
                   headerRight: () => {
-                    if (route.name !== "Login") {
-                      return (
-                        <Pressable
-                          onPress={() => {
-                            async function signOut() {
-                              result = await logout();
-                              if (result) {
-                                let currentScreen = navigation
-                                  .getState()
-                                  .routes.slice(-1)[0];
-                                if (currentScreen.name !== "Home") {
-                                  //Switch to Home before it gets replaced
-                                  navigation.replace("Home");
-                                }
-                              }
-                            }
-                            signOut();
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            size={24}
-                            name={"logout-variant"}
-                            color={Colors.black}
-                          />
-                        </Pressable>
-                      );
-                    }
-                    return null;
+                    return route.name !== "Login" ? <HeaderSignout /> : null;
                   },
                 })}
               >

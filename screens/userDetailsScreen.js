@@ -3,7 +3,9 @@ import React from "react";
 import { Colors } from "../utils/Colors";
 
 export default function UserDetailsScreen({ navigation }) {
-  function LoginHandler() {}
+  function LoginHandler() {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
