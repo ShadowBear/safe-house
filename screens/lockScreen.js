@@ -17,6 +17,7 @@ import { InactivityContext } from "../context/InactivityContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Security } from "../utils/securityStore";
 import { logout } from "../utils/databaseHelper";
+import { UserProfileData } from "../model/userProfileData";
 
 const LockScreen = ({ navigation, route }) => {
   const DOTNUMBER = 4;
@@ -120,7 +121,6 @@ const LockScreen = ({ navigation, route }) => {
       checkLogin(newLockCode.join(""));
       return;
     }
-
     switch (setRound) {
       case 0:
         setSetRound(1);
@@ -130,8 +130,30 @@ const LockScreen = ({ navigation, route }) => {
       case 1:
         if (newCode === newLockCode.join("")) {
           try {
-            await AsyncStorage.setItem(Security.SecurityPin, newCode);
+            const user = JSON.parse(
+              await AsyncStorage.getItem(Security.PW_KEY_User)
+            );
+            const userProfil = JSON.parse(
+              await AsyncStorage.getItem(user.user)
+            );
+            if (!userProfil)
+              userProfil = new UserProfileData(
+                user.user,
+                userProfil.password,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                newCode
+              );
+            userProfil.securityPin = newCode;
+            await AsyncStorage.setItem(user.user, JSON.stringify(userProfil));
+            // await AsyncStorage.setItem(Security.SecurityPin, newCode);
           } catch (error) {
+            console.error("error setting new security pin", error);
             Alert.error(error);
           }
           Alert.alert("Pin Confirmed", "Your PIN has been set successfully", [
@@ -190,7 +212,15 @@ const LockScreen = ({ navigation, route }) => {
 
   const handlePinReset = async () => {
     try {
-      await AsyncStorage.removeItem(Security.SecurityPin);
+      let userObject = JSON.parse(
+        await AsyncStorage.getItem(Security.PW_KEY_User)
+      );
+      const userProfil = JSON.parse(
+        await AsyncStorage.getItem(userObject.user)
+      );
+      userProfil.securityPin = null;
+      await AsyncStorage.setItem(userObject.user, JSON.stringify(userProfil));
+      //await AsyncStorage.removeItem();
       Alert.alert(
         "Success:",
         "Your login pin has been reset. You can set a new Pin while your next login!"
@@ -208,7 +238,9 @@ const LockScreen = ({ navigation, route }) => {
 
   const checkForLogin = async (lockCode) => {
     try {
-      const loginPin = await AsyncStorage.getItem(Security.SecurityPin);
+      const user = JSON.parse(await AsyncStorage.getItem(Security.PW_KEY_User));
+      const userProfil = JSON.parse(await AsyncStorage.getItem(user.user));
+      const loginPin = userProfil.securityPin; //await AsyncStorage.getItem(Security.SecurityPin);
       console.log("Stored Login Pin ", loginPin);
       console.log("Entered Pin: ", lockCode);
       return lockCode === loginPin ? true : false;

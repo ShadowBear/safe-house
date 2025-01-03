@@ -12,14 +12,12 @@ import { AuthContext, AuthProvider } from "./context/AuthContext";
 import { onAuthStateChanged } from "firebase/auth";
 import auth from "./utils/firebaseConfig";
 import { Colors } from "./utils/Colors";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { logout } from "./utils/databaseHelper";
-import { AppState, Pressable } from "react-native";
 import LockScreen from "./screens/lockScreen";
 import { useState, useRef, useEffect } from "react";
 import { InactivityProvider } from "./context/InactivityContext";
 import AppStateHandler from "./utils/appStateHandler";
 import HeaderSignout from "./components/headerSignout";
+import RegisterDetailsScreen from "./screens/registerDetailsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -37,7 +35,7 @@ export default function App() {
       }
     });
     return unsubscribe;
-  }, [auth, auth?.currentUser?.emailVerified]);
+  }, [auth, auth?.currentUser?.emailVerified, auth?.currentUser]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -69,6 +67,14 @@ export default function App() {
                 <Stack.Screen
                   name="UserDetails"
                   component={UserDetailsScreen}
+                />
+                <Stack.Screen
+                  name="Registration"
+                  component={RegisterDetailsScreen}
+                  options={{
+                    gestureEnabled: false,
+                    headerBackVisible: false,
+                  }}
                 />
                 <Stack.Screen
                   name="Lock"

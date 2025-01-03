@@ -1,6 +1,7 @@
 import { createContext, useState, useRef, useMemo } from "react";
 
 const INACTIVITYTIMEOUT = 60000;
+const DEBUGMODE = false;
 
 export const InactivityContext = createContext({
   previousRoute: null,
@@ -13,12 +14,14 @@ export const InactivityProvider = ({ children, navigationRef }) => {
 
   const resetTimer = useMemo(() => {
     return () => {
+      if (DEBUGMODE) return;
       if (timeRef.current) {
         clearTimeout(timeRef.current);
       }
       timeRef.current = setTimeout(() => {
         const currentRoute = navigationRef?.current?.getCurrentRoute();
-        setPreviousRoute(currentRoute?.name);
+        if (previousRoute?.name !== "Lock")
+          setPreviousRoute(currentRoute?.name);
         navigationRef?.current?.navigate("Lock");
       }, INACTIVITYTIMEOUT);
     };

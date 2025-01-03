@@ -145,7 +145,6 @@ export default function PwCardDetails({
           mode="outlined"
           label="Password"
           placeholder="Password"
-          // onChangeText={setPW}
           onChangeText={(text) => {
             if (isEditMode) setPW(text);
           }}

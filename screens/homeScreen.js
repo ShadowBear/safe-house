@@ -40,17 +40,31 @@ export default function HomeScreen({ navigation }) {
   const { resetTimer, setPreviousRoute, setClearTimeout } =
     useContext(InactivityContext);
 
+  // Check if User has security code set and registration is completed
   useFocusEffect(
     useCallback(() => {
       async function fetchDataAsync() {
-        const passed = await checkSecuritySet();
-        if (!passed) {
-          navigation.navigate("Lock", { isSetLockState: true });
-        } else {
+        try {
+          const passed = await checkSecuritySet();
+          if (!passed) {
+            navigation.navigate("Lock", { isSetLockState: true });
+            return;
+          }
+          let userObject = JSON.parse(
+            await AsyncStorage.getItem(Security.PW_KEY_User)
+          );
+          const registered = await checkRegistration(userObject.user);
+          if (!registered) {
+            navigation.navigate("Registration");
+            return;
+          }
+
           let data = await getAllPwData();
           setAccountPwData(data);
           setIsLoading(false);
           resetTimer();
+        } catch (error) {
+          console.error("Error fetching data", error);
         }
       }
       fetchDataAsync();
@@ -85,6 +99,9 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     async function getAndSetKey() {
       try {
+        //Don´t create a new key if it already exists
+        if (authCtx?.key) return;
+
         const userPWJson = await AsyncStorage.getItem(Security.PW_KEY_User);
         const userData = userPWJson !== null ? JSON.parse(userPWJson) : null;
         if (!userData?.password || !userData?.user) {
@@ -107,7 +124,9 @@ export default function HomeScreen({ navigation }) {
 
   const checkSecuritySet = async () => {
     try {
-      const securityPin = await AsyncStorage.getItem(Security.SecurityPin);
+      const user = JSON.parse(await AsyncStorage.getItem(Security.PW_KEY_User));
+      const userProfil = JSON.parse(await AsyncStorage.getItem(user.user));
+      const securityPin = userProfil?.securityPin;
       if (securityPin === null) {
         setPreviousRoute(null);
         setClearTimeout();
@@ -115,6 +134,16 @@ export default function HomeScreen({ navigation }) {
       }
       return true;
     } catch (error) {}
+  };
+
+  const checkRegistration = async (userName) => {
+    try {
+      const userProfilData = await AsyncStorage.getItem(userName);
+      return userProfilData !== null;
+    } catch (error) {
+      console.error("Error getting user profile data", error);
+      return false;
+    }
   };
 
   return (

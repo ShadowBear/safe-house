@@ -93,6 +93,12 @@ export default function LoginScreen({ navigation }) {
         }
       } else if (segmentValue === "Register" && pw === rePw) {
         await register(userName, pw);
+        setSegmentValue("Login");
+        Alert.alert(
+          "Registration successful",
+          "An email has been send to finish registration",
+          [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+        );
       }
     } catch (error) {
       console.error("Login or Register failed", error);
@@ -255,8 +261,8 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.inputFields}
-            label="User Name"
-            placeholder="User Name"
+            label="Email"
+            placeholder="Email"
             mode="outlined"
             value={userName}
             onChangeText={setUserName}
