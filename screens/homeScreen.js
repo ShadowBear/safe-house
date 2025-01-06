@@ -30,15 +30,16 @@ import {
 import { Security } from "../utils/securityStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { InactivityContext } from "../context/InactivityContext";
+import { getUser, getUserProfile } from "../utils/saveHelper";
 
 export default function HomeScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(true);
-  const authCtx = useContext(AuthContext);
   const [accountPwData, setAccountPwData] = useState([]);
   const [filteredData, setFilteredPwData] = useState(accountPwData);
   const [filter, setFilter] = useState("");
   const { resetTimer, setPreviousRoute, setClearTimeout } =
     useContext(InactivityContext);
+  const authCtx = useContext(AuthContext);
 
   // Check if User has security code set and registration is completed
   useFocusEffect(
@@ -50,10 +51,7 @@ export default function HomeScreen({ navigation }) {
             navigation.navigate("Lock", { isSetLockState: true });
             return;
           }
-          let userObject = JSON.parse(
-            await AsyncStorage.getItem(Security.PW_KEY_User)
-          );
-          const registered = await checkRegistration(userObject.user);
+          const registered = await checkRegistration();
           if (!registered) {
             navigation.navigate("Registration");
             return;
@@ -99,23 +97,21 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     async function getAndSetKey() {
       try {
-        //Don´t create a new key if it already exists
-        if (authCtx?.key) return;
-
-        const userPWJson = await AsyncStorage.getItem(Security.PW_KEY_User);
-        const userData = userPWJson !== null ? JSON.parse(userPWJson) : null;
+        const userData = await getUser(authCtx);
         if (!userData?.password || !userData?.user) {
           logout();
           return;
         }
+
         let key = await generateKey(userData.password, Security.Salt);
+        authCtx.setUser(userData);
         authCtx.setKey(key);
       } catch (error) {
         console.error("Error setting key:", error);
       }
     }
     getAndSetKey();
-  }, [authCtx.key]);
+  }, [authCtx.key, authCtx?.user]);
 
   function deleteAccountPwData(id) {
     const updatedPwData = accountPwData.filter((item) => item.id !== id);
@@ -124,8 +120,7 @@ export default function HomeScreen({ navigation }) {
 
   const checkSecuritySet = async () => {
     try {
-      const user = JSON.parse(await AsyncStorage.getItem(Security.PW_KEY_User));
-      const userProfil = JSON.parse(await AsyncStorage.getItem(user.user));
+      const userProfil = await getUserProfile(authCtx);
       const securityPin = userProfil?.securityPin;
       if (securityPin === null) {
         setPreviousRoute(null);
@@ -136,9 +131,9 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {}
   };
 
-  const checkRegistration = async (userName) => {
+  const checkRegistration = async () => {
     try {
-      const userProfilData = await AsyncStorage.getItem(userName);
+      const userProfilData = await getUserProfile(authCtx);
       return userProfilData !== null;
     } catch (error) {
       console.error("Error getting user profile data", error);

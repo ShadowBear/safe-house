@@ -54,6 +54,7 @@ export default function LoginScreen({ navigation }) {
   const reInputRef = useRef(null);
 
   const { setClearTimeout } = useContext(InactivityContext);
+  const authCtx = useContext(AuthContext);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,6 +64,10 @@ export default function LoginScreen({ navigation }) {
   );
 
   const LoginHandler = useCallback(async () => {
+    //Clear AuthContext
+    authCtx.setUser(null);
+    authCtx.setKey(null);
+
     //Debug Logic:
     let userPW = pw;
     let user = userName;

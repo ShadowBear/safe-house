@@ -18,6 +18,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Security } from "../utils/securityStore";
 import { logout } from "../utils/databaseHelper";
 import { UserProfileData } from "../model/userProfileData";
+import { getUser, getUserProfile } from "../utils/saveHelper";
+import { AuthContext } from "../context/AuthContext";
 
 const LockScreen = ({ navigation, route }) => {
   const DOTNUMBER = 4;
@@ -38,6 +40,7 @@ const LockScreen = ({ navigation, route }) => {
   const [setRound, setSetRound] = useState(0);
   const [newCode, setNewCode] = useState([]);
   const [isSetLockState, setIsSetLockState] = useState(null);
+  const authCtx = useContext(AuthContext);
 
   useEffect(() => {
     checkIsSetLockState();
@@ -130,12 +133,9 @@ const LockScreen = ({ navigation, route }) => {
       case 1:
         if (newCode === newLockCode.join("")) {
           try {
-            const user = JSON.parse(
-              await AsyncStorage.getItem(Security.PW_KEY_User)
-            );
-            const userProfil = JSON.parse(
-              await AsyncStorage.getItem(user.user)
-            );
+            const user = await getUser(authCtx);
+            const userProfil = await getUserProfile(authCtx);
+            //Check to refactor with spread operator
             if (!userProfil)
               userProfil = new UserProfileData(
                 user.user,
@@ -149,9 +149,7 @@ const LockScreen = ({ navigation, route }) => {
                 "",
                 newCode
               );
-            userProfil.securityPin = newCode;
             await AsyncStorage.setItem(user.user, JSON.stringify(userProfil));
-            // await AsyncStorage.setItem(Security.SecurityPin, newCode);
           } catch (error) {
             console.error("error setting new security pin", error);
             Alert.error(error);
@@ -212,12 +210,8 @@ const LockScreen = ({ navigation, route }) => {
 
   const handlePinReset = async () => {
     try {
-      let userObject = JSON.parse(
-        await AsyncStorage.getItem(Security.PW_KEY_User)
-      );
-      const userProfil = JSON.parse(
-        await AsyncStorage.getItem(userObject.user)
-      );
+      let userObject = await getUser(authCtx);
+      const userProfil = getUserProfil();
       userProfil.securityPin = null;
       await AsyncStorage.setItem(userObject.user, JSON.stringify(userProfil));
       //await AsyncStorage.removeItem();
@@ -238,9 +232,8 @@ const LockScreen = ({ navigation, route }) => {
 
   const checkForLogin = async (lockCode) => {
     try {
-      const user = JSON.parse(await AsyncStorage.getItem(Security.PW_KEY_User));
-      const userProfil = JSON.parse(await AsyncStorage.getItem(user.user));
-      const loginPin = userProfil.securityPin; //await AsyncStorage.getItem(Security.SecurityPin);
+      const userProfil = await getUserProfile(authCtx);
+      const loginPin = userProfil.securityPin;
       console.log("Stored Login Pin ", loginPin);
       console.log("Entered Pin: ", lockCode);
       return lockCode === loginPin ? true : false;

@@ -18,18 +18,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Security } from "../utils/securityStore";
 import { UserProfileData } from "../model/userProfileData";
 import { getUserProfile, saveUserProfile } from "../utils/saveHelper";
+import { AuthContext } from "../context/AuthContext";
 
 export default function UserDetailsScreen({ navigation }) {
   const { resetTimer } = useContext(InactivityContext);
+  const authCtx = useContext(AuthContext);
   const [userProfilData, setUserProfilData] = useState(null);
 
   useEffect(() => {
     async function getUserProfileAsync() {
       try {
-        let userObject = JSON.parse(
-          await AsyncStorage.getItem(Security.PW_KEY_User)
-        );
-        let profile = await getUserProfile(userObject.user);
+        let profile = await getUserProfile(authCtx);
         if (!profile) {
           console.log("No user profile");
         }

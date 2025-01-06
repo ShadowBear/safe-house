@@ -19,7 +19,8 @@ import { UserProfileData } from "../model/userProfileData";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Security } from "../utils/securityStore";
 import { useNavigation } from "@react-navigation/native";
-import { saveUserProfile } from "../utils/saveHelper";
+import { getUser, saveUserProfile } from "../utils/saveHelper";
+import { AuthContext } from "../context/AuthContext";
 
 export default function RegisterDetailsScreen() {
   const { resetTimer } = useContext(InactivityContext);
@@ -47,6 +48,7 @@ export default function RegisterDetailsScreen() {
     { label: "Switzerland", value: "switzerland" },
   ]);
   const navigation = useNavigation();
+  const authCtx = useContext(AuthContext);
 
   const saveData = async () => {
     // Save user data to the database
@@ -54,8 +56,7 @@ export default function RegisterDetailsScreen() {
       let validData = fielValidation();
       if (validData) {
         setValidInput(true);
-        const userString = await AsyncStorage.getItem(Security.PW_KEY_User);
-        const user = JSON.parse(userString);
+        const user = await getUser(authCtx);
         const userProfile = new UserProfileData(
           user.user,
           user.password,
@@ -67,7 +68,6 @@ export default function RegisterDetailsScreen() {
           phone,
           value
         );
-        console.log(userProfile);
         saveUserProfile(userProfile);
         navigation.replace("Home");
       } else {

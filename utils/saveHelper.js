@@ -14,9 +14,10 @@ export async function saveUserProfile(userProfile) {
   }
 }
 
-export async function getUserProfile(userName) {
+export async function getUserProfile(authCtx) {
   try {
-    let userProfileString = await AsyncStorage.getItem(userName);
+    const user = await getUser(authCtx);
+    let userProfileString = await AsyncStorage.getItem(user.user);
     if (!userProfileString) return null;
     let userObject = JSON.parse(userProfileString);
     let userProfile = new UserProfileData(
@@ -33,7 +34,18 @@ export async function getUserProfile(userName) {
     );
     return userProfile;
   } catch (error) {
-    console.error("Error retrieving user profile");
+    console.error("Error retrieving user profile", error);
     return null;
+  }
+}
+
+export async function getUser(authCtx) {
+  try {
+    if (authCtx.user) return authCtx.user;
+    let user = JSON.parse(await AsyncStorage.getItem(Security.PW_KEY_User));
+    if (user) authCtx.setUser(user);
+    return user;
+  } catch (error) {
+    console.error("Error getting user name", error);
   }
 }
