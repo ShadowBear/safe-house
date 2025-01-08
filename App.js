@@ -26,16 +26,24 @@ export default function App() {
   const navigation = useRef(null);
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Verification State: ", auth?.currentUser?.emailVerified);
-      if (user && auth?.currentUser?.emailVerified) {
-        setLoggedIn(true);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await user.reload();
+        if (user) tryLoginManual();
       } else {
         setLoggedIn(false);
       }
     });
     return unsubscribe;
-  }, [auth, auth?.currentUser?.emailVerified, auth?.currentUser]);
+  }, [auth]);
+
+  const tryLoginManual = React.useCallback(() => {
+    if (auth?.currentUser?.emailVerified) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
+  }, [auth]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -60,8 +68,9 @@ export default function App() {
                   <Stack.Screen
                     options={{ headerStyle: { backgroundColor: Colors.white } }}
                     name="Login"
-                    component={LoginScreen}
-                  />
+                  >
+                    {() => <LoginScreen onLogin={tryLoginManual} />}
+                  </Stack.Screen>
                 )}
                 <Stack.Screen name="PwDetails" component={PwDetailsScreen} />
                 <Stack.Screen

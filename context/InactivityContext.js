@@ -1,7 +1,7 @@
 import { createContext, useState, useRef, useMemo } from "react";
 
 const INACTIVITYTIMEOUT = 60000;
-const DEBUGMODE = false;
+const DEBUGMODE = true;
 
 export const InactivityContext = createContext({
   previousRoute: null,

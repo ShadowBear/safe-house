@@ -37,6 +37,7 @@ export default function PwDetailsScreen({ navigation, route }) {
   const [pwDataCollectionId, setPwDataCollectionId] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [resetInputs, setResetInputs] = useState(false);
+  const [focus, setFocus] = useState(false);
 
   const authCtx = useContext(AuthContext);
   const { resetTimer } = useContext(InactivityContext);

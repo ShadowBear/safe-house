@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Modal,
 } from "react-native";
 import React, { useContext, useState, useEffect } from "react";
 import { Colors } from "../utils/Colors";
@@ -17,13 +18,30 @@ import { useRoute } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Security } from "../utils/securityStore";
 import { UserProfileData } from "../model/userProfileData";
-import { getUserProfile, saveUserProfile } from "../utils/saveHelper";
+import { getUser, getUserProfile, saveUserProfile } from "../utils/saveHelper";
 import { AuthContext } from "../context/AuthContext";
+import auth from "../utils/firebaseConfig";
+import {
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { logout } from "../utils/databaseHelper";
+import DeleteModal from "../components/deleteModal";
 
 export default function UserDetailsScreen({ navigation }) {
   const { resetTimer } = useContext(InactivityContext);
   const authCtx = useContext(AuthContext);
   const [userProfilData, setUserProfilData] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const DELETETXT = (
+    <Text>
+      Are you sure you want to delete your whole account? {"\n"}If so, please
+      enter "<Text style={{ fontWeight: "bold", fontSize: 15 }}>Delete</Text>"
+      in the field below
+    </Text>
+  );
 
   useEffect(() => {
     async function getUserProfileAsync() {
@@ -84,6 +102,40 @@ export default function UserDetailsScreen({ navigation }) {
       [prop]: value,
     }));
   }
+
+  const deleteUserProfil = async () => {
+    try {
+      setShowDeleteModal(false);
+      const user = auth.currentUser;
+      const userData = await getUser(authCtx);
+
+      const credentials = EmailAuthProvider.credential(
+        userData.user,
+        userData.password
+      );
+      reauthenticateWithCredential(user, credentials)
+        .then(async () => {
+          await AsyncStorage.removeItem(userData.user);
+          deleteUser(user)
+            .then(() => {
+              logout();
+              navigation.replace("Home");
+            })
+            .catch((err) => {
+              console.error("error inside deleting user", err);
+            });
+        })
+        .catch((err) => {
+          console.error("Error reAuthenticating", err);
+        });
+    } catch (error) {
+      console.error("Error deleting user", error);
+    }
+  };
+
+  const handleDeletePress = () => {
+    setShowDeleteModal(true);
+  };
 
   return (
     <View style={styles.container} onTouchStart={resetTimer}>
@@ -154,7 +206,7 @@ export default function UserDetailsScreen({ navigation }) {
               <Button
                 icon="delete"
                 mode="elevated"
-                onPress={() => console.log("Delete Profile")}
+                onPress={handleDeletePress}
                 contentStyle={styles.deleteButton}
                 textColor={Colors.white}
                 buttonColor={Colors.delete}
@@ -163,6 +215,21 @@ export default function UserDetailsScreen({ navigation }) {
               </Button>
             </View>
           )}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={showDeleteModal}
+            onRequestClose={() => setShowDeleteModal(false)}
+          >
+            <DeleteModal
+              title="Delete User Account"
+              body={DELETETXT}
+              onDelete={deleteUserProfil}
+              onCancel={() => {
+                setShowDeleteModal(false);
+              }}
+            />
+          </Modal>
         </KeyboardAvoidingView>
       </LinearGradient>
     </View>

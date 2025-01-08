@@ -35,8 +35,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import auth from "../utils/firebaseConfig";
 import { sendEmailVerification } from "firebase/auth";
 import { InactivityContext } from "../context/InactivityContext";
+import { useNetInfo } from "@react-native-community/netinfo";
 
-export default function LoginScreen({ navigation }) {
+// export default function LoginScreen({ navigation, route }) {
+export default function LoginScreen({ onLogin }) {
+  const navigation = useNavigation();
   const [pwIsVisible, setPasswordIsVisible] = useState(true);
   const [rePwIsVisible, setRePasswordIsVisible] = useState(true);
   const [eyeIcon, setEyeIcon] = useState("eye");
@@ -56,6 +59,9 @@ export default function LoginScreen({ navigation }) {
   const { setClearTimeout } = useContext(InactivityContext);
   const authCtx = useContext(AuthContext);
 
+  const netInfo = useNetInfo();
+  //const { onLogin } = route.params;
+
   useFocusEffect(
     useCallback(() => {
       clearFields();
@@ -63,7 +69,18 @@ export default function LoginScreen({ navigation }) {
     }, [])
   );
 
+  const checkInternetConnection = useCallback(() => {
+    try {
+      return netInfo.isConnected;
+    } catch (error) {
+      console.error("connected?: ", error);
+    }
+  }, [netInfo.isConnected]);
+
   const LoginHandler = useCallback(async () => {
+    //Check internet connection and show error if no Connection
+    console.log("Internet connection is: ", checkInternetConnection());
+
     //Clear AuthContext
     authCtx.setUser(null);
     authCtx.setKey(null);
@@ -73,8 +90,10 @@ export default function LoginScreen({ navigation }) {
     let user = userName;
 
     if (pw.length === 0 && userName.length === 0) {
-      user = "boyo@byom.de";
-      userPW = "Test123!";
+      // user = "boyo@byom.de";
+      // userPW = "Test123!";
+      user = "step22@byom.de";
+      userPW = "Hallo123!";
     } else {
       let valid = checkValidate();
       if (!valid) {
@@ -84,9 +103,19 @@ export default function LoginScreen({ navigation }) {
     }
     try {
       const jsonUser = JSON.stringify({ user: user, password: userPW });
+      console.log("JsonUser: ", jsonUser);
       await AsyncStorage.setItem(Security.PW_KEY_User, jsonUser);
       if (segmentValue === "Login") {
-        await login(user, userPW);
+        console.log("Segment Login");
+        let success = await login(user, userPW);
+        if (!success) {
+          Alert.alert(
+            "Login Failed",
+            "Please check your email or password and try again",
+            [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+          );
+          return;
+        }
         if (!auth?.currentUser?.emailVerified) {
           //Todo give better user feedback with modal?
           Alert.alert(
@@ -95,6 +124,8 @@ export default function LoginScreen({ navigation }) {
             [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
           );
           return;
+        } else if (auth?.currentUser?.emailVerified) {
+          onLogin();
         }
       } else if (segmentValue === "Register" && pw === rePw) {
         await register(userName, pw);
@@ -108,7 +139,7 @@ export default function LoginScreen({ navigation }) {
     } catch (error) {
       console.error("Login or Register failed", error);
     }
-  }, [segmentValue, userName, pw, rePw, navigation]);
+  }, [segmentValue, userName, pw, rePw, navigation, netInfo.isConnected]);
 
   const clearFields = () => {
     setPw("");
@@ -142,7 +173,7 @@ export default function LoginScreen({ navigation }) {
     } else if (!valid) {
       setErrorMessage("Password or Email is not valid!");
     }
-
+    console.log("All Valid");
     setValidLogin(valid);
     return valid;
   };
@@ -150,11 +181,6 @@ export default function LoginScreen({ navigation }) {
   // const handleCheckboxPress = useCallback(() => {
   //   setChecked(!checked);
   // }, [checked]);
-
-  // const handleSegmentChange = useCallback(() => {
-  //   setSegmentValue(value);
-  //   clearFields();
-  // }, []);
 
   const loginOrRegisterInputs = useMemo(() => {
     return segmentValue === "Login" ? (

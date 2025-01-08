@@ -134,12 +134,12 @@ const LockScreen = ({ navigation, route }) => {
         if (newCode === newLockCode.join("")) {
           try {
             const user = await getUser(authCtx);
-            const userProfil = await getUserProfile(authCtx);
+            let userProfil = await getUserProfile(authCtx);
             //Check to refactor with spread operator
-            if (!userProfil)
+            if (!userProfil) {
               userProfil = new UserProfileData(
                 user.user,
-                userProfil.password,
+                user.password,
                 "",
                 "",
                 "",
@@ -149,6 +149,20 @@ const LockScreen = ({ navigation, route }) => {
                 "",
                 newCode
               );
+            } else {
+              userProfil = new UserProfileData(
+                user.user,
+                user.password,
+                userProfil.firstname,
+                userProfil.lastname,
+                userProfil.dateOfBirth,
+                userProfil.street,
+                userProfil.city,
+                userProfil.phone,
+                userProfil.country,
+                newCode
+              );
+            }
             await AsyncStorage.setItem(user.user, JSON.stringify(userProfil));
           } catch (error) {
             console.error("error setting new security pin", error);
