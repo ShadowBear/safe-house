@@ -25,10 +25,12 @@ export const Colors = {
   info: "#39f5f5",
   lightGrey: "#ECECEC",
   darkGrey: "#9E9E9E",
+  darkestGrey: "#474747",
   white: "#FFFFFF",
   black: "#000000",
   transparent: "transparent",
   background: "#f7f7f7",
   delete: "#f70081",
   red: "#dd0101",
+  innerBackground: "#faf3f3",
 };

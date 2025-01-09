@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendEmailVerification,
+  updateEmail,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import firebase from "firebase/compat/app";
 import "firebase/firestore";
@@ -163,4 +165,36 @@ export async function updatePwData(id, pwData) {
     console.error("Error updating Pw Data: ", error);
     return false;
   }
+}
+
+export async function updateUserEmail(email) {
+  try {
+    await updateEmail(auth.currentUser, email);
+  } catch (error) {
+    console.error("Update Email Failed: ", error);
+  }
+}
+
+export async function passwordResetHandler(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("Password Reset Failed: ", error);
+  }
+}
+
+export function checkValidEmail(email) {
+  const emailRegex = new RegExp(
+    "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$"
+  );
+  return emailRegex.test(email);
+}
+
+export function checkValidPassword(password) {
+  console.log(password);
+  const pwRegex = new RegExp(
+    "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&}<>{=()[\\]])[A-Za-z\\d@$!%*?&}<>{=()[\\]]+$"
+  );
+  console.log("Test: ", pwRegex.test(password));
+  return pwRegex.test(password);
 }

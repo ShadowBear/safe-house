@@ -37,6 +37,15 @@ export default function NewPwCardDetails({
     }
   }, [focus]);
 
+  const handleAdd = () => {
+    if (userName.trim() === "" || pw.trim() === "") return;
+
+    onPressNew({ newAccount: { userName: userName, password: pw } });
+    setPW("");
+    setUserName("");
+    Keyboard.dismiss();
+  };
+
   return (
     <View style={styles.newContainer}>
       <View style={styles.inputContainer}>
@@ -98,12 +107,7 @@ export default function NewPwCardDetails({
           <Button
             icon="note-plus-outline"
             mode="elevated"
-            onPress={() => {
-              onPressNew({ newAccount: { userName: userName, password: pw } });
-              setPW("");
-              setUserName("");
-              Keyboard.dismiss();
-            }}
+            onPress={handleAdd}
             contentStyle={styles.button}
             textColor={Colors.white}
           >

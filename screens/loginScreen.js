@@ -1,6 +1,7 @@
 import {
   Alert,
   KeyboardAvoidingView,
+  Pressable,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -27,7 +28,14 @@ import {
   HelperText,
 } from "react-native-paper";
 import { Link, useFocusEffect, useNavigation } from "@react-navigation/native";
-import { login, logout, register } from "../utils/databaseHelper";
+import {
+  checkValidEmail,
+  checkValidPassword,
+  login,
+  logout,
+  passwordResetHandler,
+  register,
+} from "../utils/databaseHelper";
 import { AuthContext } from "../context/AuthContext";
 import { generateKey, PW_KEY } from "../utils/crypoHelper";
 import { Security } from "../utils/securityStore";
@@ -92,7 +100,7 @@ export default function LoginScreen({ onLogin }) {
     if (pw.length === 0 && userName.length === 0) {
       // user = "boyo@byom.de";
       // userPW = "Test123!";
-      user = "step22@byom.de";
+      user = "step32@byom.de";
       userPW = "Hallo123!";
     } else {
       let valid = checkValidate();
@@ -157,25 +165,32 @@ export default function LoginScreen({ onLogin }) {
   }, [pw, rePw]);
 
   const checkValidate = () => {
-    const pwRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&}<>{=()[\]])[A-Za-z\d@$!%*?&}<>{=()[\]]+$/;
-    let pwValidate = pwRegex.test(pw);
-    let valid =
-      userName.length > 5 &&
-      pw.length > 7 &&
-      userName.includes("@") &&
-      pwValidate;
-
-    if (!pwValidate) {
+    const pwValidate = checkValidPassword(pw) && pw.length > 7;
+    const emailValidate = checkValidEmail(userName);
+    const valid = emailValidate && pwValidate;
+    if (!emailValidate) setErrorMessage("This is not a valid email!");
+    else if (!pwValidate) {
       setErrorMessage(
         "Missing Password complexity press info for more details:"
       );
-    } else if (!valid) {
-      setErrorMessage("Password or Email is not valid!");
     }
-    console.log("All Valid");
     setValidLogin(valid);
     return valid;
+  };
+
+  const handlerPwReset = async () => {
+    console.log(userName.trim().length, userName);
+    if (userName.trim().length < 6) return;
+    try {
+      await passwordResetHandler(userName.trim());
+      Alert.alert(
+        "Reset Password Email Sent",
+        "Check your inbox for the password reset link",
+        [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+      );
+    } catch (error) {
+      console.error("Failed to reset password", error);
+    }
   };
 
   // const handleCheckboxPress = useCallback(() => {
@@ -194,7 +209,9 @@ export default function LoginScreen({ onLogin }) {
           <Text>Remember Me</Text>
         </View>
         <View style={styles.link}>
-          <Link to={{ screen: "Home" }}>Password Forgotten..</Link>
+          <Pressable onPress={handlerPwReset}>
+            <Text style={styles.resetTxt}>Password Forgotten...</Text>
+          </Pressable>
         </View>
       </>
     ) : (
@@ -298,6 +315,7 @@ export default function LoginScreen({ onLogin }) {
             value={userName}
             onChangeText={setUserName}
             activeOutlineColor={Colors.secondary}
+            inputMode="email"
           />
           <TextInput
             ref={inputRef}
@@ -443,6 +461,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignContent: "center",
     justifyContent: "flex-end",
+    textDecorationLine: "underline",
+  },
+  resetTxt: {
+    fontSize: 15,
+    fontStyle: "italic",
+    color: Colors.primary300,
     textDecorationLine: "underline",
   },
   inputFields: { height: 50, width: "100%", marginTop: 15 },

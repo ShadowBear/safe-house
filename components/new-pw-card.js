@@ -13,6 +13,7 @@ export default function NewPwCard() {
   const navigation = useNavigation();
 
   function addNewCategoryHandler() {
+    if (categoryName.trim() === "") return;
     const avatar = randomAvatar();
     //Todo: Check if category name already exists
     const sample = new PwData(avatar, categoryName, []);
@@ -23,7 +24,6 @@ export default function NewPwCard() {
       category: sample.title,
       id: sample.id,
     });
-    // navigation.navigate("PwDetails", { accounts: [], category: categoryName });
   }
 
   return (

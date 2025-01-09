@@ -29,12 +29,22 @@ import {
 } from "firebase/auth";
 import { logout } from "../utils/databaseHelper";
 import DeleteModal from "../components/deleteModal";
+import CustomDatePickerCard from "../components/customDatePicker";
+import { formateDateToString } from "../utils/helperClass";
 
 export default function UserDetailsScreen({ navigation }) {
   const { resetTimer } = useContext(InactivityContext);
   const authCtx = useContext(AuthContext);
   const [userProfilData, setUserProfilData] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDateTxt, setSelectedDateTxt] = useState("09.12.2024");
+
+  const setDateHere = (date) => {
+    let dateTxt = formateDateToString(date);
+    setSelectedDateTxt(dateTxt);
+    updateUserProfil("dateofbirth", date);
+  };
+
   const DELETETXT = (
     <Text>
       Are you sure you want to delete your whole account? {"\n"}If so, please
@@ -51,6 +61,7 @@ export default function UserDetailsScreen({ navigation }) {
           console.log("No user profile");
         }
         setUserProfilData(profile);
+        setSelectedDateTxt(formateDateToString(profile.dateofbirth));
       } catch (error) {
         console.error("Error Loading user profile");
       }
@@ -73,6 +84,7 @@ export default function UserDetailsScreen({ navigation }) {
     userProfilData?.password,
     userProfilData?.firstName,
     userProfilData?.lastName,
+    userProfilData?.dateofbirth,
     userProfilData?.phone,
     userProfilData?.country,
   ]);
@@ -167,6 +179,7 @@ export default function UserDetailsScreen({ navigation }) {
                 value={userProfilData?.username}
                 style={styles.userDetailCard}
                 onSave={updateUserProfil}
+                inputMode="email"
               />
               <UserDetailsCard
                 title="Password"
@@ -185,12 +198,20 @@ export default function UserDetailsScreen({ navigation }) {
                 style={styles.userDetailCard}
                 onSave={updateUserProfil}
               />
+              <CustomDatePickerCard
+                title="Birthday"
+                avatar="cake"
+                style={styles.userDetailCard}
+                onDateChange={setDateHere}
+                dateTxt={selectedDateTxt}
+              />
               <UserDetailsCard
                 title="Phone"
                 avatar="cellphone"
                 value={userProfilData?.phone}
                 style={styles.userDetailCard}
                 onSave={updateUserProfil}
+                inputMode="tel"
               />
               <UserDetailsCard
                 title="Country"
@@ -263,7 +284,7 @@ const styles = StyleSheet.create({
   },
 
   userDetailCardsContainer: {
-    flex: 2,
+    flex: 3,
   },
 
   deleteButtonContainer: {

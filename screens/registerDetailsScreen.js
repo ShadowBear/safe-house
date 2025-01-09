@@ -21,6 +21,8 @@ import { Security } from "../utils/securityStore";
 import { useNavigation } from "@react-navigation/native";
 import { getUser, saveUserProfile } from "../utils/saveHelper";
 import { AuthContext } from "../context/AuthContext";
+import CustomDatePickerCard from "../components/customDatePicker";
+import { formateDateToString } from "../utils/helperClass";
 
 export default function RegisterDetailsScreen() {
   const { resetTimer } = useContext(InactivityContext);
@@ -28,10 +30,12 @@ export default function RegisterDetailsScreen() {
 
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(new Date());
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [phone, setPhone] = useState("");
+
+  const [selectedDateTxt, setSelectedDateTxt] = useState("09.12.2024");
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
@@ -49,6 +53,14 @@ export default function RegisterDetailsScreen() {
   ]);
   const navigation = useNavigation();
   const authCtx = useContext(AuthContext);
+
+  const setDateHere = (date) => {
+    console.log("Date here: ", date);
+    let dateTxt = formateDateToString(date);
+    console.log("Selected date Txt: ", dateTxt);
+    setSelectedDateTxt(dateTxt);
+    setDateOfBirth(date);
+  };
 
   const saveData = async () => {
     // Save user data to the database
@@ -79,15 +91,24 @@ export default function RegisterDetailsScreen() {
   };
 
   const fielValidation = () => {
+    const bDayNorm = normalizeDate(dateOfBirth);
+    const todayNorm = normalizeDate(new Date());
+
+    let validDate = bDayNorm.getTime() === todayNorm.getTime();
+
     return (
       firstname !== "" &&
       lastname !== "" &&
-      dateOfBirth !== "" &&
+      dateOfBirth !== validDate &&
       street !== "" &&
       city !== "" &&
       phone !== "" &&
       value !== null
     );
+  };
+
+  const normalizeDate = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   };
 
   return (
@@ -124,16 +145,13 @@ export default function RegisterDetailsScreen() {
               !validInput && lastname === "" ? Colors.error : Colors.darkGrey
             }
           />
-          <CustomInputFieldCard
-            title={"Date of birth"}
-            avatar={"cake"}
+          <CustomDatePickerCard
+            avatar="cake"
             style={styles.inputs}
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-            outlineColor={
-              !validInput && dateOfBirth === "" ? Colors.error : Colors.darkGrey
-            }
+            onDateChange={setDateHere}
+            dateTxt={selectedDateTxt}
           />
+
           <CustomInputFieldCard
             title={"Street"}
             avatar={"road-variant"}
@@ -163,6 +181,7 @@ export default function RegisterDetailsScreen() {
             outlineColor={
               !validInput && phone === "" ? Colors.error : Colors.darkGrey
             }
+            inputMode="tel"
           />
           <View style={styles.dropdownContainer}>
             <View style={styles.avatar}>

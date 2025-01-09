@@ -4,7 +4,7 @@ export class UserProfileData {
     password,
     firstname,
     lastname,
-    dateOfBirth,
+    dateofbirth,
     street,
     city,
     phone,
@@ -15,7 +15,7 @@ export class UserProfileData {
     this.password = password;
     this.firstname = firstname;
     this.lastname = lastname;
-    this.dateOfBirth = dateOfBirth;
+    this.dateofbirth = dateofbirth;
     this.street = street;
     this.city = city;
     this.phone = phone;
@@ -28,7 +28,7 @@ export class UserProfileData {
     console.log(`Password: ${this.password}`);
     console.log(`Firstname: ${this.firstname}`);
     console.log(`Lastname: ${this.lastname}`);
-    console.log(`Date of Birth: ${this.dateOfBirth}`);
+    console.log(`Date of Birth: ${this.dateofbirth}`);
     console.log(`Street: ${this.street}`);
     console.log(`City: ${this.city}`);
     console.log(`Phone: ${this.phone}`);

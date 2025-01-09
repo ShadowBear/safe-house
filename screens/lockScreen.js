@@ -155,7 +155,7 @@ const LockScreen = ({ navigation, route }) => {
                 user.password,
                 userProfil.firstname,
                 userProfil.lastname,
-                userProfil.dateOfBirth,
+                userProfil.dateofbirth,
                 userProfil.street,
                 userProfil.city,
                 userProfil.phone,

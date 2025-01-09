@@ -25,7 +25,7 @@ export async function getUserProfile(authCtx) {
       userObject.password,
       userObject.firstname,
       userObject.lastname,
-      userObject.dateOfBirth,
+      userObject.dateofbirth,
       userObject.street,
       userObject.city,
       userObject.phone,

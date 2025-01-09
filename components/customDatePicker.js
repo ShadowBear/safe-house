@@ -1,19 +1,26 @@
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import QuardBtn from "./quardBtn";
 import { Colors } from "../utils/Colors";
 import { TextInput } from "react-native-paper";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
 
-export default function CustomInputFieldCard({
-  title,
+export default function CustomDatePickerCard({
   avatar,
   style,
-  value,
-  onChangeText,
-  outlineColor,
-  inputMode,
+  dateTxt,
+  onDateChange,
 }) {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
+
+  const handleDatePicked = (selected) => {
+    setShowDatePicker(false);
+    let selectedDate = new Date(selected.nativeEvent.timestamp);
+    setDate(selectedDate);
+    onDateChange(selectedDate);
+  };
+
   return (
     <View style={[styles.cardContainer, style]}>
       <View style={styles.innerCard}>
@@ -24,19 +31,20 @@ export default function CustomInputFieldCard({
             color={Colors.secondary}
           />
         </View>
-        <View style={styles.labelContainer}>
-          <TextInput
-            label={title}
-            value={value}
-            placeholder={title}
-            onChangeText={onChangeText}
-            mode="outlined"
-            activeOutlineColor={Colors.secondary}
-            style={styles.inputField}
-            outlineColor={outlineColor}
-            inputMode={inputMode}
-          />
-        </View>
+        <Pressable onPress={() => setShowDatePicker(true)}>
+          <View style={styles.labelContainer}>
+            <View style={styles.inputField}>
+              <Text style={styles.dateTxt}>{dateTxt}</Text>
+            </View>
+            {showDatePicker && (
+              <RNDateTimePicker
+                mode="date"
+                value={date}
+                onChange={handleDatePicked}
+              />
+            )}
+          </View>
+        </Pressable>
       </View>
     </View>
   );
@@ -88,33 +96,23 @@ const styles = StyleSheet.create({
     height: 55,
   },
   inputField: {
-    marginHorizontal: 10,
-    marginBottom: 5,
-    backgroundColor: Colors.innerBackground,
+    marginHorizontal: 15,
   },
-  text: {
-    fontSize: 18,
-    color: Colors.black,
-    flex: 1,
-    textAlign: "start",
-    fontWeight: "bold",
-    marginLeft: 10,
-    marginTop: 15,
+  dateTxt: {
+    fontSize: 17,
+    color: Colors.darkestGrey,
   },
   labelContainer: {
     flexDirection: "column",
     flex: 1,
     justifyContent: "center",
     alignItems: "left",
-  },
-  value: {
-    fontSize: 16,
-    color: Colors.grey,
-    marginTop: 0,
-    marginBottom: 5,
-    textAlign: "left",
-    marginLeft: 10,
-    flex: 1,
-    fontWeight: "normal",
+    borderWidth: 1,
+    marginVertical: 5,
+    borderColor: Colors.darkGrey,
+    borderRadius: 4,
+    marginHorizontal: 10,
+    backgroundColor: Colors.innerBackground,
+    width: 293,
   },
 });

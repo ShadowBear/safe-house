@@ -12,6 +12,7 @@ export default function UserDetailsCard({
   style,
   onSave,
   isPassword,
+  inputMode,
 }) {
   const [isEditMode, setEditMode] = useState(false);
   const [newValue, setNewValue] = useState(value);
@@ -49,6 +50,7 @@ export default function UserDetailsCard({
               activeOutlineColor={Colors.secondary}
               style={styles.inputField}
               autoFocus={true}
+              inputMode={inputMode}
             />
           ) : (
             <>
