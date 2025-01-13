@@ -13,9 +13,11 @@ export default function UserDetailsCard({
   onSave,
   isPassword,
   inputMode,
+  noButton,
 }) {
   const [isEditMode, setEditMode] = useState(false);
   const [newValue, setNewValue] = useState(value);
+  const showButton = noButton ? false : true;
 
   useEffect(() => {
     setNewValue(value);
@@ -61,13 +63,15 @@ export default function UserDetailsCard({
             </>
           )}
         </View>
-        <QuardBtn
-          name={isEditMode ? "content-save-outline" : "note-edit-outline"}
-          size={25}
-          onPress={isEditMode ? saveChanges : editField}
-          color={isEditMode ? Colors.secondary : Colors.primary}
-          style={styles.icon}
-        />
+        {showButton && (
+          <QuardBtn
+            name={isEditMode ? "content-save-outline" : "note-edit-outline"}
+            size={25}
+            onPress={isEditMode ? saveChanges : editField}
+            color={isEditMode ? Colors.secondary : Colors.primary}
+            style={styles.icon}
+          />
+        )}
       </View>
     </View>
   );

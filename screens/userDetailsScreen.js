@@ -80,10 +80,10 @@ export default function UserDetailsScreen({ navigation }) {
     }
     saveUserProfileAsync();
   }, [
-    userProfilData?.userName,
+    userProfilData?.username,
     userProfilData?.password,
-    userProfilData?.firstName,
-    userProfilData?.lastName,
+    userProfilData?.firstname,
+    userProfilData?.lastname,
     userProfilData?.dateofbirth,
     userProfilData?.phone,
     userProfilData?.country,
@@ -109,11 +109,36 @@ export default function UserDetailsScreen({ navigation }) {
 
   function updateUserProfil(attribute, value) {
     let prop = attribute.toLowerCase();
+    if (prop === "name") {
+      saveNameChange(value);
+      return;
+    }
     setUserProfilData((prev) => ({
       ...prev,
       [prop]: value,
     }));
   }
+
+  const saveNameChange = (value) => {
+    try {
+      const trimmedValue = value.trim();
+      const spaceIndex = trimmedValue.indexOf(" ");
+
+      if (spaceIndex === -1) {
+        updateUserProfil("firstname", trimmedValue);
+        return;
+      }
+      const firstName = trimmedValue.slice(0, spaceIndex);
+      const lastName = trimmedValue.slice(spaceIndex + 1).trim();
+
+      updateUserProfil("firstname", firstName);
+      updateUserProfil("lastname", lastName);
+
+      console.log("Name updated successfully");
+    } catch (err) {
+      console.error("Error saving name: " + err);
+    }
+  };
 
   const deleteUserProfil = async () => {
     try {
@@ -180,6 +205,7 @@ export default function UserDetailsScreen({ navigation }) {
                 style={styles.userDetailCard}
                 onSave={updateUserProfil}
                 inputMode="email"
+                noButton={true}
               />
               <UserDetailsCard
                 title="Password"
@@ -219,6 +245,7 @@ export default function UserDetailsScreen({ navigation }) {
                 value={userProfilData?.country}
                 style={styles.userDetailCard}
                 onSave={updateUserProfil}
+                noButton={true}
               />
             </View>
           </View>
