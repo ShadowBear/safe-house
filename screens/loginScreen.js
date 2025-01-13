@@ -68,7 +68,6 @@ export default function LoginScreen({ onLogin }) {
   const authCtx = useContext(AuthContext);
 
   const netInfo = useNetInfo();
-  //const { onLogin } = route.params;
 
   useFocusEffect(
     useCallback(() => {
@@ -88,6 +87,14 @@ export default function LoginScreen({ onLogin }) {
   const LoginHandler = useCallback(async () => {
     //Check internet connection and show error if no Connection
     console.log("Internet connection is: ", checkInternetConnection());
+    if (!checkInternetConnection()) {
+      Alert.alert(
+        "No Internet Connection",
+        "Please check your internet connection and try again",
+        [{ text: "OK", onPress: () => console.log("Ok Pressed") }]
+      );
+      return;
+    }
 
     //Clear AuthContext
     authCtx.setUser(null);
@@ -342,7 +349,7 @@ export default function LoginScreen({ onLogin }) {
             activeOutlineColor={Colors.secondary}
           />
           <View>
-            {validLogin ? null : (
+            {!validLogin && (
               <View style={styles.errorContainer}>
                 <HelperText type="error">{errorMessage}</HelperText>
                 <MaterialCommunityIcons

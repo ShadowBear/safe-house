@@ -41,6 +41,7 @@ export default function CustomDatePickerCard({
                 mode="date"
                 value={date}
                 onChange={handleDatePicked}
+                display="spinner"
               />
             )}
           </View>
